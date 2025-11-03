@@ -1,54 +1,33 @@
-import { NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
-import connectDB from "@/lib/dbConnect";
+import dbConnect from "@/lib/dbConnect";
 import Worker from "@/models/worker";
+import bcrypt from "bcryptjs";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    await connectDB();
-
+    await dbConnect();
     const body = await req.json();
-    const {
-      fullName,
-      email,
-      phone,
-      password,
-      address,
-      city,
-      state,
-      pincode,
-      skills,
-      experience,
-      description,
-    } = body;
 
-    if (!fullName || !email || !phone || !password) {
-      return NextResponse.json(
-        { message: "Please fill all required fields" },
-        { status: 400 }
-      );
-    }
+    const hashedPassword = await bcrypt.hash(body.password, 10);
 
-    // Encrypt password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Save worker data
-    const newWorker = new Worker({
-      fullName,
-      email,
-      phone,
+    const worker = new Worker({
+      name: body.name, // ✅ matches schema
+      email: body.email,
+      phone: body.phone,
       password: hashedPassword,
-      address,
-      city,
-      state,
-      pincode,
-      skills,
-      experience,
-      description,
+      location: {
+        city: body.location.city,
+        state: body.location.state,
+        pincode: body.location.pincode,
+      },
+      skills: body.skills,
+      experience: Number(body.experience), // ✅ convert safely
+      idProof: body.idProof,
+      certificate: body.certificate,
+      description: body.description,
     });
 
-    await newWorker.save();
-
+    await worker.save();
     return NextResponse.json(
       { message: "Worker registered successfully!" },
       { status: 201 }

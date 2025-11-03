@@ -14,7 +14,10 @@ const useUser = () => {
     if (session?.user?.role === "user") {
       router.push("/user-dashboard");
     } else if (session?.user?.role === "worker") {
-      router.push("/worker-dashboard");
+      router.push("/registration");
+    }
+    else{
+      router.push("/login");
     }
   }, [session, status, router]);
 

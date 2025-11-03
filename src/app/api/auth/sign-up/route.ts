@@ -8,14 +8,14 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { username, email, password, role } = body;
 
-    if (!username || !email || !password) {
+    if (!username || !email || !password || !role) {
       return NextResponse.json(
         { message: "All fields are required" },
         { status: 400 }
       );
     }
 
-    console.log("Signing In user:", { username, email });
+    console.log("Signing In user:", { username, email, role });
 
     await dbConnect();
 
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     const newUser = new User({
       username,
       email,
-      password: hashedPassword,
+      password: hashedPassword, name: username,
       role,
     });
 

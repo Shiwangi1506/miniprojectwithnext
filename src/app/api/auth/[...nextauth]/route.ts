@@ -1,6 +1,5 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-// import GoogleProvider from "next-auth/providers/google";
 import dbConnect from "@/lib/dbConnect";
 import User from "@/models/user";
 import bcrypt from "bcryptjs";
@@ -66,7 +65,8 @@ const authOptions: NextAuthOptions = {
           name: user.name,
           email: user.email as string,
           role: (user as any).role,
-        }      }
+        };
+      }
       return token;
     },
 

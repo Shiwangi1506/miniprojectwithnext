@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+
+const steps = [
+  { id: 1, title: "Basic Details" },
+  { id: 2, title: "Qualifications & Skills" },
+  { id: 3, title: "Verification & Documents" },
+];
 
 const RegisterProfessional = () => {
   const [formData, setFormData] = useState({
@@ -20,18 +26,29 @@ const RegisterProfessional = () => {
     description: "",
   });
 
-  const [showPreview, setShowPreview] = useState(false);
+  const [step, setStep] = useState(1);
   const [errors, setErrors] = useState<string[]>([]);
+  const [progress, setProgress] = useState(0);
 
+  // progress bar update
+  useEffect(() => {
+    const totalFields = 13;
+    let filled = 0;
+    Object.values(formData).forEach((value) => {
+      if (value) filled++;
+    });
+    setProgress(Math.floor((filled / totalFields) * 100));
+  }, [formData]);
+
+  // handle text and textarea input
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
+  // handle file input
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, files } = e.target;
     if (files && files[0]) {
@@ -39,55 +56,96 @@ const RegisterProfessional = () => {
     }
   };
 
-  const validateForm = () => {
+  // validate each step
+  const validateStep = () => {
     const validationErrors: string[] = [];
-
-    if (!formData.fullName.trim())
-      validationErrors.push("Full Name is required.");
-    if (!formData.email.trim()) validationErrors.push("Email is required.");
-    if (!formData.phone.trim()) validationErrors.push("Phone is required.");
-    if (!formData.password.trim())
-      validationErrors.push("Password is required.");
-    if (!formData.confirmPassword.trim())
-      validationErrors.push("Confirm Password is required.");
-    if (!formData.address.trim()) validationErrors.push("Address is required.");
-    if (!formData.city.trim()) validationErrors.push("City is required.");
-    if (!formData.state.trim()) validationErrors.push("State is required.");
-    if (!formData.pincode.trim()) validationErrors.push("Pincode is required.");
-    if (!formData.skills.trim()) validationErrors.push("Skills are required.");
-    if (!formData.experience.trim())
-      validationErrors.push("Experience is required.");
-    if (!formData.idProof) validationErrors.push("ID Proof is required.");
-
-    if (formData.password !== formData.confirmPassword) {
-      validationErrors.push("Passwords do not match.");
+    if (step === 1) {
+      if (!formData.fullName.trim())
+        validationErrors.push("Full Name is required.");
+      if (!formData.email.trim()) validationErrors.push("Email is required.");
+      if (!formData.phone.trim()) validationErrors.push("Phone is required.");
+      if (!formData.password.trim())
+        validationErrors.push("Password is required.");
+      if (!formData.confirmPassword.trim())
+        validationErrors.push("Confirm Password is required.");
+      if (formData.password !== formData.confirmPassword)
+        validationErrors.push("Passwords do not match.");
+      const phoneRegex = /^[6-9]\d{9}$/;
+      if (!phoneRegex.test(formData.phone))
+        validationErrors.push("Invalid phone number format.");
+    } else if (step === 2) {
+      if (!formData.address.trim())
+        validationErrors.push("Address is required.");
+      if (!formData.city.trim()) validationErrors.push("City is required.");
+      if (!formData.state.trim()) validationErrors.push("State is required.");
+      if (!formData.pincode.trim())
+        validationErrors.push("Pincode is required.");
+      if (!formData.skills.trim())
+        validationErrors.push("Skills are required.");
+      if (!formData.experience.trim())
+        validationErrors.push("Experience is required.");
+      else if (isNaN(Number(formData.experience)))
+        validationErrors.push("Experience must be a number (in years).");
+    } else if (step === 3) {
+      if (!formData.idProof) validationErrors.push("ID Proof is required.");
     }
-
-    const phoneRegex = /^[6-9]\d{9}$/;
-    if (!phoneRegex.test(formData.phone)) {
-      validationErrors.push("Invalid phone number format.");
-    }
-
     setErrors(validationErrors);
     return validationErrors.length === 0;
   };
 
-  // ✅ Updated handleSubmit that connects to backend
+  const handleNext = () => {
+    if (validateStep()) setStep((prev) => Math.min(prev + 1, steps.length));
+  };
+
+  const handleBack = () => setStep((prev) => Math.max(prev - 1, 1));
+
+  // submit form to backend
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateForm()) {
+    if (validateStep()) {
+      const bodyData = {
+        name: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+        location: {
+          city: formData.city,
+          state: formData.state,
+          pincode: formData.pincode,
+        },
+        skills: formData.skills,
+        experience: Number(formData.experience),
+        idProof: formData.idProof ? formData.idProof.name : "",
+        certificate: formData.certificate ? formData.certificate.name : "",
+        description: formData.description,
+      };
+
       try {
         const res = await fetch("/api/auth/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(bodyData),
         });
-
         const data = await res.json();
-
         if (res.ok) {
           alert("Worker registered successfully!");
-          console.log("Saved worker:", data);
+          setStep(1);
+          setFormData({
+            fullName: "",
+            email: "",
+            phone: "",
+            password: "",
+            confirmPassword: "",
+            address: "",
+            city: "",
+            state: "",
+            pincode: "",
+            skills: "",
+            experience: "",
+            idProof: null,
+            certificate: null,
+            description: "",
+          });
         } else {
           alert(data.message || "Something went wrong");
         }
@@ -95,31 +153,68 @@ const RegisterProfessional = () => {
         console.error("Error:", error);
         alert("Server error. Please try again.");
       }
-    } else {
-      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
   return (
-    <div
-      className="relative w-full min-h-screen bg-cover bg-center flex flex-col items-center justify-start p-4 pt-16"
-      style={{ backgroundImage: "url('/professional-bg.jpg')" }}
-    >
-      <div className="absolute inset-0 bg-white/20 bg-opacity-50 backdrop-blur-sm"></div>
+    <div className="relative w-full min-h-screen flex items-center justify-center px-4 py-8 bg-gray-900">
+      {/* blurry dark background */}
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
 
+      {/* form card */}
       <form
+        className="relative z-10 bg-white rounded-3xl shadow-2xl max-w-xl w-full p-8 space-y-6"
         onSubmit={handleSubmit}
-        className="relative bg-white bg-opacity-95 rounded-2xl shadow-2xl p-8 max-w-3xl w-full space-y-6 overflow-auto z-10"
       >
-        <h1 className="text-3xl font-bold text-gray-800 text-center">
+        <h1 className="text-2xl font-bold text-gray-800 text-center mb-2">
           Register as a Professional
         </h1>
-        <p className="text-gray-600 text-center mb-4">
-          Fill in all details accurately for verification
+
+        {/* progress bar */}
+        <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
+          <div
+            className="bg-[#e61717] h-3 rounded-full transition-all"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+        <p className="text-gray-600 text-sm text-center">
+          {progress}% Completed
         </p>
 
+        {/* step indicators */}
+        <div className="flex justify-between mb-6 relative">
+          {steps.map((s, idx) => {
+            const isCompleted = s.id < step;
+            const isCurrent = s.id === step;
+            return (
+              <div
+                key={s.id}
+                className="flex-1 flex flex-col items-center relative"
+              >
+                <div
+                  className={`w-8 h-8 flex items-center justify-center rounded-full border-2 transition-all duration-300 ${
+                    isCompleted
+                      ? "bg-green-500 border-green-500 text-white"
+                      : isCurrent
+                      ? "bg-white border-[#e61717] text-[#e61717]"
+                      : "bg-white border-gray-300 text-gray-400"
+                  }`}
+                >
+                  {isCompleted ? "✓" : s.id}
+                </div>
+                <span className="text-xs mt-1 text-center">{s.title}</span>
+
+                {idx < steps.length - 1 && (
+                  <div className="absolute top-4 right-0 w-full h-0.5 bg-gray-300 -z-10"></div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* error messages */}
         {errors.length > 0 && (
-          <div className="bg-red-100 text-[#e61717] p-3 rounded-lg space-y-1">
+          <div className="bg-red-100 text-red-700 p-3 rounded-lg space-y-1">
             <ul>
               {errors.map((err, idx) => (
                 <li key={idx}>• {err}</li>
@@ -128,202 +223,171 @@ const RegisterProfessional = () => {
           </div>
         )}
 
-        <div className="grid md:grid-cols-2 gap-4">
-          <input
-            type="text"
-            name="fullName"
-            placeholder="Full Name"
-            className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#e61717]"
-            value={formData.fullName}
-            onChange={handleChange}
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="Email Address"
-            className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#e61717]"
-            value={formData.email}
-            onChange={handleChange}
-          />
-          <input
-            type="tel"
-            name="phone"
-            placeholder="Phone Number"
-            className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#e61717]"
-            value={formData.phone}
-            onChange={handleChange}
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#e61717]"
-            value={formData.password}
-            onChange={handleChange}
-          />
-          <input
-            type="password"
-            name="confirmPassword"
-            placeholder="Confirm Password"
-            className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#e61717]"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-4">
-          <input
-            type="text"
-            name="address"
-            placeholder="Full Address"
-            className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#e61717]"
-            value={formData.address}
-            onChange={handleChange}
-          />
-          <input
-            type="text"
-            name="city"
-            placeholder="City"
-            className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#e61717]"
-            value={formData.city}
-            onChange={handleChange}
-          />
-          <input
-            type="text"
-            name="state"
-            placeholder="State"
-            className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#e61717]"
-            value={formData.state}
-            onChange={handleChange}
-          />
-          <input
-            type="text"
-            name="pincode"
-            placeholder="Pincode"
-            className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#e61717]"
-            value={formData.pincode}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-4">
-          <input
-            type="text"
-            name="skills"
-            placeholder="Skills (Plumbing, Electrician, etc.)"
-            className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#e61717]"
-            value={formData.skills}
-            onChange={handleChange}
-          />
-          <input
-            type="text"
-            name="experience"
-            placeholder="Experience (e.g. 3 years)"
-            className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#e61717]"
-            value={formData.experience}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-4">
-          <label className="flex flex-col p-3 border rounded-lg cursor-pointer hover:bg-[#a8c6d8] transition">
-            Upload ID Proof *
+        {/* step 1 */}
+        {step === 1 && (
+          <div className="space-y-4">
             <input
-              type="file"
-              name="idProof"
-              className="hidden"
-              onChange={handleFileChange}
+              type="text"
+              name="fullName"
+              placeholder="Full Name"
+              className="p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-[#e61717]"
+              value={formData.fullName}
+              onChange={handleChange}
             />
-            {formData.idProof && (
-              <span className="mt-2 text-sm">{formData.idProof.name}</span>
-            )}
-          </label>
-          <label className="flex flex-col p-3 border rounded-lg cursor-pointer hover:bg-[#a8c6d8] transition">
-            Upload Certificate (optional)
             <input
-              type="file"
-              name="certificate"
-              className="hidden"
-              onChange={handleFileChange}
+              type="email"
+              name="email"
+              placeholder="Email"
+              className="p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-[#e61717]"
+              value={formData.email}
+              onChange={handleChange}
             />
-            {formData.certificate && (
-              <span className="mt-2 text-sm">{formData.certificate.name}</span>
-            )}
-          </label>
-        </div>
-
-        <textarea
-          name="description"
-          placeholder="Brief description about yourself"
-          className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#e61717]"
-          value={formData.description}
-          onChange={handleChange}
-        />
-
-        <button
-          type="button"
-          onClick={() => setShowPreview(!showPreview)}
-          className="w-full bg-gray-200 text-gray-800 p-3 rounded-lg font-semibold hover:bg-gray-300 transition"
-        >
-          {showPreview
-            ? "Hide Preview & Verification Checklist"
-            : "Show Preview & Verification Checklist"}
-        </button>
-
-        {showPreview && (
-          <div className="mt-6 p-4 border rounded-lg bg-gray-50 space-y-2">
-            <h2 className="text-xl font-bold text-gray-700 mb-2">
-              Preview of Your Details
-            </h2>
-            <ul className="space-y-1 text-gray-600">
-              <li>
-                <strong>Full Name:</strong> {formData.fullName}
-              </li>
-              <li>
-                <strong>Email:</strong> {formData.email}
-              </li>
-              <li>
-                <strong>Phone:</strong> {formData.phone}
-              </li>
-              <li>
-                <strong>Address:</strong> {formData.address}, {formData.city},{" "}
-                {formData.state} - {formData.pincode}
-              </li>
-              <li>
-                <strong>Skills:</strong> {formData.skills}
-              </li>
-              <li>
-                <strong>Experience:</strong> {formData.experience}
-              </li>
-              <li>
-                <strong>ID Proof:</strong>{" "}
-                {formData.idProof?.name || "Not uploaded"}
-              </li>
-              <li>
-                <strong>Certificate:</strong>{" "}
-                {formData.certificate?.name || "Not uploaded"}
-              </li>
-              <li>
-                <strong>Description:</strong> {formData.description || "None"}
-              </li>
-            </ul>
-            <p className="text-[#e61717] font-semibold mt-2">
-              Please review all details carefully before submitting.
-            </p>
+            <input
+              type="tel"
+              name="phone"
+              placeholder="Phone Number"
+              className="p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-[#e61717]"
+              value={formData.phone}
+              onChange={handleChange}
+            />
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              className="p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-[#e61717]"
+              value={formData.password}
+              onChange={handleChange}
+            />
+            <input
+              type="password"
+              name="confirmPassword"
+              placeholder="Confirm Password"
+              className="p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-[#e61717]"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+            />
           </div>
         )}
 
-        <button
-          type="submit"
-          className="w-full bg-[#e61717] text-white p-3 rounded-lg font-semibold hover:bg-black transition"
-        >
-          Register
-        </button>
-      </form>
+        {/* step 2 */}
+        {step === 2 && (
+          <div className="space-y-4">
+            <input
+              type="text"
+              name="address"
+              placeholder="Address"
+              className="p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-[#e61717]"
+              value={formData.address}
+              onChange={handleChange}
+            />
+            <div className="grid grid-cols-2 gap-4">
+              <input
+                type="text"
+                name="city"
+                placeholder="City"
+                className="p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-[#e61717]"
+                value={formData.city}
+                onChange={handleChange}
+              />
+              <input
+                type="text"
+                name="state"
+                placeholder="State"
+                className="p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-[#e61717]"
+                value={formData.state}
+                onChange={handleChange}
+              />
+            </div>
+            <input
+              type="text"
+              name="pincode"
+              placeholder="Pincode"
+              className="p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-[#e61717]"
+              value={formData.pincode}
+              onChange={handleChange}
+            />
+            <input
+              type="text"
+              name="skills"
+              placeholder="Skills"
+              className="p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-[#e61717]"
+              value={formData.skills}
+              onChange={handleChange}
+            />
+            <input
+              type="number"
+              name="experience"
+              placeholder="Experience (in years)"
+              className="p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-[#e61717]"
+              value={formData.experience}
+              onChange={handleChange}
+            />
+          </div>
+        )}
 
-      {/* Animated Blobs */}
-      <div className="absolute top-0 left-0 w-72 h-72 bg-[#a8c6d8] rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-pulse"></div>
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-[#a8c6d8] rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
+        {/* step 3 */}
+        {step === 3 && (
+          <div className="space-y-4">
+            <label className="flex flex-col p-3 border rounded-lg cursor-pointer hover:bg-gray-100 transition">
+              Upload ID Proof *
+              <input
+                type="file"
+                name="idProof"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+              {formData.idProof && <span>{formData.idProof.name}</span>}
+            </label>
+            <label className="flex flex-col p-3 border rounded-lg cursor-pointer hover:bg-gray-100 transition">
+              Upload Certificate (Optional)
+              <input
+                type="file"
+                name="certificate"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+              {formData.certificate && <span>{formData.certificate.name}</span>}
+            </label>
+            <textarea
+              name="description"
+              placeholder="Brief description about yourself"
+              className="p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-[#e61717]"
+              value={formData.description}
+              onChange={handleChange}
+            />
+          </div>
+        )}
+
+        {/* navigation buttons */}
+        <div className="flex justify-between mt-4">
+          {step > 1 && (
+            <button
+              type="button"
+              onClick={handleBack}
+              className="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-400 transition"
+            >
+              Back
+            </button>
+          )}
+          {step < steps.length && (
+            <button
+              type="button"
+              onClick={handleNext}
+              className="ml-auto bg-[#e61717] text-white px-6 py-2 rounded-lg hover:bg-black transition"
+            >
+              Next
+            </button>
+          )}
+          {step === steps.length && (
+            <button
+              type="submit"
+              className="ml-auto bg-[#e61717] text-white px-6 py-2 rounded-lg hover:bg-black transition"
+            >
+              Submit
+            </button>
+          )}
+        </div>
+      </form>
     </div>
   );
 };

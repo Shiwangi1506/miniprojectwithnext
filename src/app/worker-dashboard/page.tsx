@@ -1,16 +1,28 @@
 "use client";
 
+import React, { useState } from "react";
 import Sidebar from "./components/Sidebar";
 import DashboardCard from "./components/DashboardCard";
 import PieChart from "./components/LivePieChart";
 import FeedbackList from "./components/FeedbackList";
-import { mockEarnings, mockFeedback } from "./data/mockData";
+import ViewTodaysJobsModal from "./components/viewJob";
+import CheckEarningsModal from "./components/checkEarnings";
+import EditProfileModal from "./components/editProfile";
+import ManageServicesModal from "./components/manageServices";
+import { mockFeedback } from "./data/mockData";
 import { motion } from "framer-motion";
 
 export default function WorkerDashboard() {
+  // ✅ modal states
+  const [isJobsOpen, setIsJobsOpen] = useState(false);
+  const [isEarningsOpen, setIsEarningsOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isManageOpen, setIsManageOpen] = useState(false);
+
   return (
     <div className="flex min-h-screen bg-[#0E0E0E] text-white">
       <Sidebar />
+
       <main className="flex-1 p-6">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
@@ -27,10 +39,41 @@ export default function WorkerDashboard() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <DashboardCard title="View Today's Jobs" icon="📅" />
-          <DashboardCard title="Check Earnings" icon="💰" />
-          <DashboardCard title="Edit Profile" icon="✏️" />
-          <DashboardCard title="Manage Services" icon="⚙️" />
+          {/* View Today’s Jobs */}
+          <button
+            onClick={() => setIsJobsOpen(true)}
+            className="bg-[#121212] border border-gray-700 hover:border-red-600 rounded-xl p-4 text-center transition"
+          >
+            <div className="text-3xl mb-2">📅</div>
+            <p className="font-medium text-white">View Today's Jobs</p>
+          </button>
+
+          {/* Check Earnings */}
+          <button
+            onClick={() => setIsEarningsOpen(true)}
+            className="bg-[#121212] border border-gray-700 hover:border-red-600 rounded-xl p-4 text-center transition"
+          >
+            <div className="text-3xl mb-2">💰</div>
+            <p className="font-medium text-white">Check Earnings</p>
+          </button>
+
+          {/* Edit Profile */}
+          <button
+            onClick={() => setIsEditOpen(true)}
+            className="bg-[#121212] border border-gray-700 hover:border-red-600 rounded-xl p-4 text-center transition"
+          >
+            <div className="text-3xl mb-2">✏️</div>
+            <p className="font-medium text-white">Edit Profile</p>
+          </button>
+
+          {/* Manage Services */}
+          <button
+            onClick={() => setIsManageOpen(true)}
+            className="bg-[#121212] border border-gray-700 hover:border-red-600 rounded-xl p-4 text-center transition"
+          >
+            <div className="text-3xl mb-2">⚙️</div>
+            <p className="font-medium text-white">Manage Services</p>
+          </button>
         </div>
 
         {/* Stats Section */}
@@ -44,7 +87,7 @@ export default function WorkerDashboard() {
             <h2 className="text-lg mb-4">Earnings</h2>
             <PieChart />
 
-            <button className="bg-red-500 mt-4 px-4 py-2 rounded-lg">
+            <button className="bg-red-500 mt-4 px-4 py-2 rounded-lg hover:bg-red-600 transition">
               Withdraw Earnings
             </button>
           </motion.div>
@@ -54,6 +97,27 @@ export default function WorkerDashboard() {
             <FeedbackList feedback={mockFeedback} />
           </div>
         </div>
+
+        {/* ✅ Popup Modals */}
+        <ViewTodaysJobsModal
+          isOpen={isJobsOpen}
+          onClose={() => setIsJobsOpen(false)}
+        />
+
+        <CheckEarningsModal
+          isOpen={isEarningsOpen}
+          onClose={() => setIsEarningsOpen(false)}
+        />
+
+        <EditProfileModal
+          isOpen={isEditOpen}
+          onClose={() => setIsEditOpen(false)}
+        />
+
+        <ManageServicesModal
+          isOpen={isManageOpen}
+          onClose={() => setIsManageOpen(false)}
+        />
       </main>
     </div>
   );
