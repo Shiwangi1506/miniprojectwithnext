@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { ChevronDown } from "lucide-react";
 
@@ -131,13 +132,15 @@ export default function Home(): React.ReactElement {
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8 mt-10">
           {services.map((service, index) => (
             <Link
-              href={`/services/${service.title.toLowerCase()}`}
+              href={`/book/${service.title.toLowerCase()}`}
               key={index}
               className="group bg-white/85 border border-[#E5E7EB] rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 hover:cursor-pointer"
             >
-              <img
+              <Image
                 src={service.img}
                 alt={service.title}
+                width={400}
+                height={160}
                 className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
               />
               <div className="p-5 text-left">

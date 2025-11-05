@@ -46,7 +46,6 @@ export default function SignupPage() {
         if (contentType && contentType.includes("application/json")) {
           try {
             const errorData = await res.json();
-
             alert(errorData.message || "An error occurred");
           } catch (e) {
             const errorText = await res.text();
@@ -70,9 +69,11 @@ export default function SignupPage() {
   return (
     <div
       className="min-h-screen flex items-center justify-center p-6 bg-cover bg-center"
-      style={{ backgroundImage: "url('./image/login.jpg')" }}
+      style={{ backgroundImage: "url('/image/login.jpg')" }}
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 w-11/12 sm:w-4/5 lg:max-w-3xl rounded-2xl overflow-hidden shadow-xl bg-white/20 backdrop-blur-lg">
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 w-11/12 sm:w-4/5 lg:max-w-3xl rounded-2xl overflow-hidden shadow-2xl bg-white/20 backdrop-blur-lg border border-white/40 hover:border-white/60 transition-all duration-300 transform hover:scale-[1.02]">
+        
         <div className="bg-[#e61717] bg-opacity-90 flex items-center justify-center p-6">
           <div className="text-white text-center space-y-2">
             <h2 className="text-2xl sm:text-3xl font-bold">Join UrbanSetGo</h2>
@@ -85,10 +86,13 @@ export default function SignupPage() {
           </div>
         </div>
 
-        {/* Right Column */}
+        
         <div className="flex items-center justify-center p-6">
-          <form className="w-full space-y-4" onSubmit={handleSubmit}>
-            <h2 className="text-2xl sm:text-3xl font-bold text-center text-black mb-4">
+          <form
+            className="w-full space-y-4 bg-white/40 backdrop-blur-lg rounded-xl p-6 border border-white/30 shadow-md"
+            onSubmit={handleSubmit}
+          >
+            <h2 className="text-2xl font-bold text-center text-black mb-2">
               Sign Up
             </h2>
 
@@ -98,7 +102,7 @@ export default function SignupPage() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
-              className="w-full p-3 rounded-lg border border-gray-400 focus:outline-none focus:ring-2 focus:ring-[#e61717] bg-white/40 text-black placeholder-gray-800"
+              className="w-full p-2.5 rounded-lg border border-gray-400 focus:outline-none focus:ring-2 focus:ring-[#e61717] bg-white/60 text-black placeholder-gray-800 transition"
             />
 
             <input
@@ -107,13 +111,13 @@ export default function SignupPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full p-3 rounded-lg border border-gray-400 focus:outline-none focus:ring-2 focus:ring-[#e61717] bg-white/40 text-black placeholder-gray-800"
+              className="w-full p-2.5 rounded-lg border border-gray-400 focus:outline-none focus:ring-2 focus:ring-[#e61717] bg-white/60 text-black placeholder-gray-800 transition"
             />
 
             <select
               value={role}
               onChange={(e) => setRole(e.target.value as Role)}
-              className="w-full p-3 rounded-lg border border-gray-400 focus:outline-none focus:ring-2 focus:ring-[#e61717] bg-white/40 text-black"
+              className="w-full p-2.5 rounded-lg border border-gray-400 focus:outline-none focus:ring-2 focus:ring-[#e61717] bg-white/60 text-black"
             >
               <option value="user">User</option>
               <option value="worker">Worker</option>
@@ -125,7 +129,7 @@ export default function SignupPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full p-3 rounded-lg border border-gray-400 focus:outline-none focus:ring-2 focus:ring-[#e61717] bg-white/40 text-black placeholder-gray-800"
+              className="w-full p-2.5 rounded-lg border border-gray-400 focus:outline-none focus:ring-2 focus:ring-[#e61717] bg-white/60 text-black placeholder-gray-800 transition"
             />
 
             <input
@@ -134,13 +138,13 @@ export default function SignupPage() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
-              className="w-full p-3 rounded-lg border border-gray-400 focus:outline-none focus:ring-2 focus:ring-[#e61717] bg-white/40 text-black placeholder-gray-800"
+              className="w-full p-2.5 rounded-lg border border-gray-400 focus:outline-none focus:ring-2 focus:ring-[#e61717] bg-white/60 text-black placeholder-gray-800 transition"
             />
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-lg bg-black text-white font-semibold hover:bg-[#e61717] transition disabled:opacity-50"
+              className="w-full py-2.5 rounded-lg bg-black text-white font-semibold hover:bg-[#e61717] transition shadow-sm hover:shadow-md disabled:opacity-50"
             >
               {loading ? "Signing Up..." : "Sign Up"}
             </button>

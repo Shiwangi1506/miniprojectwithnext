@@ -11,89 +11,116 @@ import EditProfileModal from "./components/editProfile";
 import ManageServicesModal from "./components/manageServices";
 import { mockFeedback } from "./data/mockData";
 import { motion } from "framer-motion";
+import { CalendarDays, Wallet, UserCog, Settings } from "lucide-react";
+import { CheckCircle, XCircle } from "lucide-react";
+
+// ✅ Status Toggle Component
+function StatusToggle() {
+  const [isActive, setIsActive] = useState(true);
+
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-gray-600 font-medium text-xs">Work Status:</span>
+      <motion.button
+        onClick={() => setIsActive(!isActive)}
+        className={`relative w-12 h-6 flex items-center px-1 rounded-full cursor-pointer transition-colors ${
+          isActive ? "bg-green-500" : "bg-gray-400"
+        }`}
+        whileTap={{ scale: 0.95 }}
+      >
+        <motion.div
+          className="bg-white w-5 h-5 rounded-full shadow flex items-center justify-center"
+          layout
+          transition={{ type: "spring", stiffness: 500, damping: 30 }}
+          style={{ x: isActive ? 0 : 24 }}
+        >
+          {isActive ? (
+            <CheckCircle size={14} className="text-green-500" />
+          ) : (
+            <XCircle size={14} className="text-gray-500" />
+          )}
+        </motion.div>
+      </motion.button>
+    </div>
+  );
+}
 
 export default function WorkerDashboard() {
-  // ✅ modal states
   const [isJobsOpen, setIsJobsOpen] = useState(false);
   const [isEarningsOpen, setIsEarningsOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isManageOpen, setIsManageOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-[#0E0E0E] text-white">
+    <div
+      className="flex min-h-screen bg-[#f9f9f9] text-black"
+      style={{ backgroundImage: "url('/image/login.jpg')" }}
+    >
+      {/* Sidebar */}
       <Sidebar />
 
-      <main className="flex-1 p-6">
+      {/* Main Section */}
+      <main className="flex-1 p-6 md:p-10 bg-white/70 backdrop-blur-xl shadow-inner border-l border-white/40">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold">👋 Hello, Rahul!</h1>
-          <div className="flex items-center gap-3">
-            <button className="bg-blue-500 px-3 py-1 rounded-lg text-sm">
-              Available
-            </button>
-            <button className="bg-gray-700 px-3 py-1 rounded-lg text-sm">
-              Busy
-            </button>
-          </div>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">
+            👋 Welcome back, <span className="text-[#e61717]">Rahul</span>
+          </h1>
+
+          {/* ✅ Status Toggle */}
+          <StatusToggle />
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {/* View Today’s Jobs */}
-          <button
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
+          <ActionButton
+            icon={<CalendarDays size={30} className="text-[#e61717]" />}
+            text="View Today's Jobs"
             onClick={() => setIsJobsOpen(true)}
-            className="bg-[#121212] border border-gray-700 hover:border-red-600 rounded-xl p-4 text-center transition"
-          >
-            <div className="text-3xl mb-2">📅</div>
-            <p className="font-medium text-white">View Today's Jobs</p>
-          </button>
-
-          {/* Check Earnings */}
-          <button
+          />
+          <ActionButton
+            icon={<Wallet size={30} className="text-[#e61717]" />}
+            text="Check Earnings"
             onClick={() => setIsEarningsOpen(true)}
-            className="bg-[#121212] border border-gray-700 hover:border-red-600 rounded-xl p-4 text-center transition"
-          >
-            <div className="text-3xl mb-2">💰</div>
-            <p className="font-medium text-white">Check Earnings</p>
-          </button>
-
-          {/* Edit Profile */}
-          <button
+          />
+          <ActionButton
+            icon={<UserCog size={30} className="text-[#e61717]" />}
+            text="Edit Profile"
             onClick={() => setIsEditOpen(true)}
-            className="bg-[#121212] border border-gray-700 hover:border-red-600 rounded-xl p-4 text-center transition"
-          >
-            <div className="text-3xl mb-2">✏️</div>
-            <p className="font-medium text-white">Edit Profile</p>
-          </button>
-
-          {/* Manage Services */}
-          <button
+          />
+          <ActionButton
+            icon={<Settings size={30} className="text-[#e61717]" />}
+            text="Manage Services"
             onClick={() => setIsManageOpen(true)}
-            className="bg-[#121212] border border-gray-700 hover:border-red-600 rounded-xl p-4 text-center transition"
-          >
-            <div className="text-3xl mb-2">⚙️</div>
-            <p className="font-medium text-white">Manage Services</p>
-          </button>
+          />
         </div>
 
         {/* Stats Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Earnings */}
           <motion.div
-            className="bg-[#121212] rounded-2xl p-6 border border-gray-700 shadow-md"
-            initial={{ borderColor: "#333" }}
-            animate={{ borderColor: ["#333", "#ff3b3b", "#3baaff", "#333"] }}
+            className="bg-white/70 backdrop-blur-lg rounded-2xl p-6 border border-white/60 shadow-md hover:shadow-xl transition"
+            initial={{ borderColor: "#e61717" }}
+            animate={{
+              borderColor: ["#e61717", "#333", "#e61717"],
+            }}
             transition={{ duration: 4, repeat: Infinity }}
           >
-            <h2 className="text-lg mb-4">Earnings</h2>
+            <h2 className="text-lg font-semibold mb-4 text-gray-800">
+              Earnings Overview
+            </h2>
             <PieChart />
 
-            <button className="bg-red-500 mt-4 px-4 py-2 rounded-lg hover:bg-red-600 transition">
+            <button className="mt-6 w-full bg-[#e61717] text-white py-2 rounded-lg font-semibold hover:bg-[#c51414] transition">
               Withdraw Earnings
             </button>
           </motion.div>
 
-          <div className="bg-[#121212] rounded-2xl p-6 border border-gray-700 shadow-md">
-            <h2 className="text-lg mb-4">Recent Feedback</h2>
+          {/* Feedback */}
+          <div className="bg-white/70 backdrop-blur-lg rounded-2xl p-6 border border-white/60 shadow-md hover:shadow-xl transition">
+            <h2 className="text-lg font-semibold mb-4 text-gray-800">
+              Recent Feedback
+            </h2>
             <FeedbackList feedback={mockFeedback} />
           </div>
         </div>
@@ -103,22 +130,41 @@ export default function WorkerDashboard() {
           isOpen={isJobsOpen}
           onClose={() => setIsJobsOpen(false)}
         />
-
         <CheckEarningsModal
           isOpen={isEarningsOpen}
           onClose={() => setIsEarningsOpen(false)}
         />
-
         <EditProfileModal
           isOpen={isEditOpen}
           onClose={() => setIsEditOpen(false)}
         />
-
         <ManageServicesModal
           isOpen={isManageOpen}
           onClose={() => setIsManageOpen(false)}
         />
       </main>
     </div>
+  );
+}
+
+// ✅ Reusable Quick Action Button Component
+function ActionButton({
+  icon,
+  text,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  text: string;
+  onClick: () => void;
+}) {
+  return (
+    <motion.button
+      onClick={onClick}
+      whileHover={{ scale: 1.05 }}
+      className="bg-white/60 hover:bg-white/80 backdrop-blur-lg border border-white/60 hover:border-[#e61717] rounded-2xl p-5 text-center shadow-md hover:shadow-lg transition flex flex-col items-center justify-center"
+    >
+      <div className="mb-2">{icon}</div>
+      <p className="font-semibold text-gray-900">{text}</p>
+    </motion.button>
   );
 }

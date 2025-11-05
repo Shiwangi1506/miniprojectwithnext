@@ -5,9 +5,15 @@ const UserSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
+  role: {
+    type: String,
+    enum: ["user", "worker"], // only these two allowed
+    default: "user",
+    required: true,
+  },
   location: {
     city: { type: String, default: "" },
-    // optional coords for future:
+
     coordinates: {
       type: { type: String, enum: ["Point"], default: "Point" },
       coordinates: { type: [Number], default: [0, 0] },

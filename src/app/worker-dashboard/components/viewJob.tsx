@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
+import { X, CalendarDays, Wrench, Droplets, Zap } from "lucide-react"; // Added icons
 
 interface Job {
   id: number;
@@ -11,6 +11,7 @@ interface Job {
   time: string;
   location: string;
   status: "Pending" | "Completed" | "Ongoing";
+  icon: React.ReactNode;
 }
 
 interface Props {
@@ -26,6 +27,7 @@ const mockJobs: Job[] = [
     time: "10:30 AM",
     location: "Gomti Nagar, Lucknow",
     status: "Ongoing",
+    icon: <Wrench size={20} className="text-[#e61717]" />,
   },
   {
     id: 2,
@@ -34,6 +36,7 @@ const mockJobs: Job[] = [
     time: "1:00 PM",
     location: "Aliganj, Lucknow",
     status: "Pending",
+    icon: <Droplets size={20} className="text-[#e61717]" />,
   },
   {
     id: 3,
@@ -42,6 +45,7 @@ const mockJobs: Job[] = [
     time: "4:00 PM",
     location: "Hazratganj, Lucknow",
     status: "Pending",
+    icon: <Zap size={20} className="text-[#e61717]" />,
   },
 ];
 
@@ -50,23 +54,26 @@ export default function ViewTodaysJobsModal({ isOpen, onClose }: Props) {
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm flex justify-center items-center z-50"
+          className="fixed inset-0 bg-black/70 flex justify-center items-center z-50"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
           <motion.div
-            className="bg-[#121212] border border-gray-700 rounded-2xl shadow-xl p-6 w-[90%] md:w-[600px] max-h-[80vh] overflow-y-auto"
+            className="bg-[#1a1a1a] border border-gray-800 rounded-xl shadow-2xl p-6 w-[90%] md:w-[600px] max-h-[80vh] overflow-y-auto"
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ duration: 0.3 }}
           >
             {/* Header */}
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-white">
-                📅 Today's Jobs
-              </h2>
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex items-center gap-2">
+                <CalendarDays size={22} className="text-[#e61717]" />
+                <h2 className="text-xl font-semibold text-white">
+                  Today's Jobs
+                </h2>
+              </div>
               <button
                 onClick={onClose}
                 className="text-gray-400 hover:text-red-500 transition"
@@ -80,22 +87,27 @@ export default function ViewTodaysJobsModal({ isOpen, onClose }: Props) {
               {mockJobs.map((job) => (
                 <div
                   key={job.id}
-                  className="bg-[#1a1a1a] border border-gray-700 p-4 rounded-xl flex justify-between items-center hover:border-red-600 transition"
+                  className="bg-[#181818] border border-gray-700 p-4 rounded-lg 
+                             flex justify-between items-center hover:border-[#e61717]/70 transition-all"
                 >
-                  <div>
-                    <p className="font-medium text-white">{job.service}</p>
-                    <p className="text-sm text-gray-400">
-                      {job.customer} • {job.time}
-                    </p>
-                    <p className="text-xs text-gray-500">{job.location}</p>
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1">{job.icon}</div>
+                    <div>
+                      <p className="font-medium text-gray-100">{job.service}</p>
+                      <p className="text-sm text-gray-400">
+                        {job.customer} • {job.time}
+                      </p>
+                      <p className="text-xs text-gray-500">{job.location}</p>
+                    </div>
                   </div>
+
                   <span
                     className={`px-3 py-1 rounded-full text-sm font-medium ${
                       job.status === "Completed"
-                        ? "bg-green-700/20 text-green-400"
+                        ? "bg-green-600/20 text-green-400"
                         : job.status === "Ongoing"
-                        ? "bg-blue-700/20 text-blue-400"
-                        : "bg-yellow-700/20 text-yellow-400"
+                        ? "bg-blue-600/20 text-blue-400"
+                        : "bg-yellow-600/20 text-yellow-400"
                     }`}
                   >
                     {job.status}
@@ -108,7 +120,7 @@ export default function ViewTodaysJobsModal({ isOpen, onClose }: Props) {
             <div className="mt-6 text-right">
               <button
                 onClick={onClose}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl transition"
+                className="bg-[#e61717] hover:bg-red-700 text-white px-5 py-2 rounded-lg transition"
               >
                 Close
               </button>

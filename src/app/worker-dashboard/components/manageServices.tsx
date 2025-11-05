@@ -2,7 +2,14 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { PlusCircle, X, Trash2 } from "lucide-react";
+import { PlusCircle, X, Trash2, Settings } from "lucide-react";
+
+interface Service {
+  id: number;
+  name: string;
+  price: number;
+  active: boolean;
+}
 
 export default function ManageServicesModal({
   isOpen,
@@ -11,7 +18,7 @@ export default function ManageServicesModal({
   isOpen: boolean;
   onClose: () => void;
 }) {
-  const [services, setServices] = useState([
+  const [services, setServices] = useState<Service[]>([
     { id: 1, name: "AC Repair", price: 499, active: true },
     { id: 2, name: "House Cleaning", price: 799, active: false },
     { id: 3, name: "Plumbing", price: 599, active: true },
@@ -25,6 +32,10 @@ export default function ManageServicesModal({
     setServices((prev) =>
       prev.map((s) => (s.id === id ? { ...s, active: !s.active } : s))
     );
+  };
+
+  const removeService = (id: number) => {
+    setServices((prev) => prev.filter((s) => s.id !== id));
   };
 
   const handleAddService = (e: React.FormEvent) => {
@@ -44,10 +55,6 @@ export default function ManageServicesModal({
     setNewService({ name: "", price: "" });
   };
 
-  const removeService = (id: number) => {
-    setServices((prev) => prev.filter((s) => s.id !== id));
-  };
-
   return (
     <div className="fixed inset-0 bg-black/70 flex justify-center items-center z-50">
       <motion.div
@@ -57,10 +64,14 @@ export default function ManageServicesModal({
         transition={{ duration: 0.25 }}
         className="bg-[#121212] text-white border border-gray-700 rounded-2xl w-[90%] max-w-2xl p-6 shadow-xl overflow-y-auto max-h-[90vh]"
       >
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-semibold text-red-500">
-            ⚙️ Manage Services
-          </h2>
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-2">
+            <Settings size={24} className="text-red-500" />
+            <h2 className="text-2xl font-semibold text-white">
+              Manage Services
+            </h2>
+          </div>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-red-500 transition"
@@ -71,54 +82,51 @@ export default function ManageServicesModal({
 
         {/* Service List */}
         <div className="space-y-3 mb-6">
+          {services.length === 0 && (
+            <p className="text-center text-gray-500 py-4">
+              No services added yet.
+            </p>
+          )}
           {services.map((service) => (
             <motion.div
               key={service.id}
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              className={`flex justify-between items-center bg-[#1a1a1a] border rounded-lg px-4 py-3 ${
-                service.active ? "border-red-600" : "border-gray-700"
-              }`}
+              className="flex justify-between items-center bg-white/10 backdrop-blur-md border border-gray-700 rounded-xl px-4 py-3 hover:border-red-500 transition"
             >
               <div>
-                <h3 className="font-medium">{service.name}</h3>
-                <p className="text-sm text-gray-400">₹{service.price}</p>
+                <h3 className="font-medium text-white">{service.name}</h3>
+                <p className="text-sm text-gray-300">₹{service.price}</p>
               </div>
 
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => toggleService(service.id)}
-                  className={`px-3 py-1 rounded-lg text-sm transition ${
+                  className={`px-3 py-1 rounded-full text-sm font-medium transition ${
                     service.active
-                      ? "bg-red-600 hover:bg-red-700"
-                      : "bg-gray-700 hover:bg-gray-600"
+                      ? "border border-red-500 text-red-500"
+                      : "border border-gray-500 text-gray-400"
                   }`}
                 >
                   {service.active ? "Active" : "Inactive"}
                 </button>
                 <button
                   onClick={() => removeService(service.id)}
-                  className="text-gray-500 hover:text-red-500 transition"
+                  className="text-gray-400 hover:text-red-500 transition"
                 >
                   <Trash2 size={18} />
                 </button>
               </div>
             </motion.div>
           ))}
-
-          {services.length === 0 && (
-            <p className="text-center text-gray-500 py-4">
-              No services added yet.
-            </p>
-          )}
         </div>
 
         {/* Add New Service */}
         <form
           onSubmit={handleAddService}
-          className="bg-[#1a1a1a] border border-gray-700 rounded-xl p-4 space-y-4"
+          className="bg-white/10 backdrop-blur-md border border-gray-700 rounded-xl p-4 space-y-4"
         >
-          <h3 className="font-semibold text-lg mb-2 flex items-center gap-2 text-red-400">
+          <h3 className="font-semibold text-lg flex items-center gap-2 text-red-400 mb-2">
             <PlusCircle size={18} /> Add New Service
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -128,7 +136,7 @@ export default function ManageServicesModal({
               onChange={(e) =>
                 setNewService({ ...newService, name: e.target.value })
               }
-              className="bg-[#0e0e0e] border border-gray-700 rounded-lg px-3 py-2 focus:border-red-500 outline-none"
+              className="bg-transparent border border-gray-600 rounded-lg px-3 py-2 focus:border-red-500 outline-none text-white placeholder-gray-400"
             />
             <input
               placeholder="Price (₹)"
@@ -137,17 +145,18 @@ export default function ManageServicesModal({
               onChange={(e) =>
                 setNewService({ ...newService, price: e.target.value })
               }
-              className="bg-[#0e0e0e] border border-gray-700 rounded-lg px-3 py-2 focus:border-red-500 outline-none"
+              className="bg-transparent border border-gray-600 rounded-lg px-3 py-2 focus:border-red-500 outline-none text-white placeholder-gray-400"
             />
           </div>
           <button
             type="submit"
-            className="w-full bg-red-600 hover:bg-red-700 rounded-lg py-2 mt-3 transition"
+            className="w-full bg-red-500 hover:bg-red-600 rounded-lg py-2 font-medium transition"
           >
             Add Service
           </button>
         </form>
 
+        {/* Footer */}
         <div className="flex justify-end mt-6">
           <button
             onClick={onClose}
