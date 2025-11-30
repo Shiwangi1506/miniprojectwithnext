@@ -1,0 +1,86 @@
+import { Worker } from "./types";
+
+export const MOCK_WORKERS: Worker[] = [
+  {
+    _id: "1",
+    name: "Ravi Sharma",
+    email: "ravi@example.com",
+    skills: ["Electrician", "Wiring", "Installations"],
+    rating: 4.8,
+    reviews: 134,
+    experience: 5,
+    price: 499,
+    location: {
+      city: "Hauz Khas, New Delhi",
+      coordinates: { type: "Point", coordinates: [77.2064, 28.5496] },
+    },
+    bio: "Reliable electrician — wiring, fittings & small installs. Fast & neat.",
+    avatar:
+      "https://images.unsplash.com/photo-1603415526960-f7e0328c63b1?w=800&q=80",
+    topRated: true,
+    verified: true,
+    slots: ["09:00", "10:30", "12:00", "14:00", "16:00"],
+    availability: ["morning", "afternoon", "evening"],
+  },
+  {
+    _id: "2",
+    name: "Amit Verma",
+    email: "amit@example.com",
+    skills: ["Cleaner", "Deep Cleaning"],
+    rating: 4.6,
+    reviews: 89,
+    experience: 3,
+    price: 399,
+    location: {
+      city: "Sector 62, Noida",
+      coordinates: { type: "Point", coordinates: [77.358, 28.625] },
+    },
+    bio: "Friendly cleaner — deep-clean & quick turnaround. Client favourite.",
+    avatar:
+      "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?w=800&q=80",
+    verified: true,
+    slots: ["10:00", "11:30", "13:00", "15:00"],
+    availability: ["morning", "afternoon", "evening"],
+  },
+  {
+    _id: "3",
+    name: "Suresh Kumar",
+    email: "suresh@example.com",
+    skills: ["Technician", "Repairs", "Complex Problems"],
+    rating: 4.9,
+    reviews: 210,
+    experience: 7,
+    price: 599,
+    location: {
+      city: "MG Road, Gurgaon",
+      coordinates: { type: "Point", coordinates: [77.03, 28.4595] },
+    },
+    bio: "Expert technician — complex problems, reliable and neat.",
+    avatar:
+      "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=800&q=80",
+    topRated: true,
+    verified: true,
+    slots: ["09:30", "11:00", "12:30", "15:30"],
+    availability: ["morning", "afternoon", "evening"],
+  },
+  {
+    _id: "4",
+    name: "Neha Singh",
+    email: "neha@example.com",
+    skills: ["Cleaner", "Finishes", "Attentive Cleaning"],
+    rating: 4.7,
+    reviews: 76,
+    experience: 4,
+    price: 449,
+    location: {
+      city: "Connaught Place, Delhi",
+      coordinates: { type: "Point", coordinates: [77.219, 28.6323] },
+    },
+    bio: "Skilled in finishes and attentive cleaning. Always on time.",
+    avatar:
+      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&q=80",
+    verified: true,
+    slots: ["09:00", "11:00", "13:30", "17:00"],
+    availability: ["morning", "afternoon", "evening"],
+  },
+];

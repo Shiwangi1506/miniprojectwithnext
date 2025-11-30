@@ -1,55 +1,70 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import dbConnect from "@/lib/dbConnect";
-import User from "@/models/user";
+import User from "@/models/user"; // Mongoose model
 import bcrypt from "bcryptjs";
 
-interface UserSession {
-  id: string | undefined;
-  name: string | null | undefined;
-  email: string;
-  role: string;
+// ✅ Extend default types to include role
+declare module "next-auth" {
+  interface User {
+    role?: string;
+  }
+  interface Session {
+    user: {
+      id?: string;
+      name?: string;
+      email?: string;
+      role?: string;
+    };
+  }
 }
 
-const authOptions: NextAuthOptions = {
-  session: { strategy: "jwt" },
+declare module "next-auth/jwt" {
+  interface JWT {
+    id?: string;
+    role?: string;
+  }
+}
 
+// ✅ Main config
+export const authOptions: NextAuthOptions = {
+  session: { strategy: "jwt" },
   providers: [
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "Email or Username", type: "text" },
+        identifier: { label: "Email or Username", type: "text" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials.password) {
-          throw new Error("Invalid credentials");
-        }
+        if (!credentials?.identifier || !credentials.password)
+          throw new Error("Please provide both email/username and password");
 
         await dbConnect();
 
+        // ✅ Find user by email OR username
         const user = await User.findOne({
-          $or: [{ email: credentials.email }, { username: credentials.email }],
+          $or: [
+            { email: credentials.identifier },
+            { name: credentials.identifier },
+          ],
         });
 
-        if (!user) {
-          throw new Error("Invalid credentials");
-        }
+        if (!user) throw new Error("Invalid credentials");
 
-        const isMatch = await bcrypt.compare(
+        // ✅ Compare password
+        const isValid = await bcrypt.compare(
           credentials.password,
           user.password
         );
+        if (!isValid) throw new Error("Invalid credentials");
 
-        if (!isMatch) throw new Error("Invalid credentials");
-
+        // ✅ Return user details
         return {
-          ...user,
-
-          id: user._id.toString() as string,
-          email: user.email as string,
+          id: user._id.toString(),
           name: user.username,
-          role: (user as any).role,
+          email: user.email,
+          role: user.role,
         };
       },
     }),
@@ -58,31 +73,25 @@ const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        console.log("jwt callback, user:", user);
-
-        (token as any).user = {
-          id: user.id,
-          name: user.name,
-          email: user.email as string,
-          role: (user as any).role,
-        };
+        token.id = user.id;
+        token.role = user.role;
       }
       return token;
     },
-
     async session({ session, token }) {
-      if (token.user) {
-        console.log("session callback, token:", token);
-        session.user = (token as any).user;
-        session.user.role = token.user.role;
+      if (token) {
+        session.user.id = token.id;
+        session.user.role = token.role;
       }
       return session;
     },
   },
 
   pages: {
-    signIn: "/sign-in",
+    signIn: "/login",
   },
+
+  debug: true,
 };
 
 const handler = NextAuth(authOptions);

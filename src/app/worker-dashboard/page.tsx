@@ -1,6 +1,18 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import {
+  CalendarDays,
+  Wallet,
+  UserCog,
+  Settings,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
+
 import Sidebar from "./components/Sidebar";
 import DashboardCard from "./components/DashboardCard";
 import PieChart from "./components/LivePieChart";
@@ -10,9 +22,6 @@ import CheckEarningsModal from "./components/checkEarnings";
 import EditProfileModal from "./components/editProfile";
 import ManageServicesModal from "./components/manageServices";
 import { mockFeedback } from "./data/mockData";
-import { motion } from "framer-motion";
-import { CalendarDays, Wallet, UserCog, Settings } from "lucide-react";
-import { CheckCircle, XCircle } from "lucide-react";
 
 // ✅ Status Toggle Component
 function StatusToggle() {
@@ -32,7 +41,7 @@ function StatusToggle() {
           className="bg-white w-5 h-5 rounded-full shadow flex items-center justify-center"
           layout
           transition={{ type: "spring", stiffness: 500, damping: 30 }}
-          style={{ x: isActive ? 0 : 24 }}
+          style={{ x: isActive ? 24 : 0 }}
         >
           {isActive ? (
             <CheckCircle size={14} className="text-green-500" />
@@ -45,12 +54,42 @@ function StatusToggle() {
   );
 }
 
+// ✅ Main Worker Dashboard Component
 export default function WorkerDashboard() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  // ✅ Declare all hooks first (always)
   const [isJobsOpen, setIsJobsOpen] = useState(false);
   const [isEarningsOpen, setIsEarningsOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isManageOpen, setIsManageOpen] = useState(false);
 
+  // ✅ Protect route (check session and role)
+  useEffect(() => {
+    if (status === "loading") return;
+
+    if (!session) {
+      router.replace("/login");
+      return;
+    }
+
+    if (session.user.role !== "worker") {
+      router.replace("/user-dashboard");
+      return;
+    }
+  }, [session, status, router]);
+
+  // ✅ Loading state
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-gray-600">
+        Checking session...
+      </div>
+    );
+  }
+
+  // ✅ Main UI
   return (
     <div
       className="flex min-h-screen bg-[#f9f9f9] text-black"
@@ -64,10 +103,11 @@ export default function WorkerDashboard() {
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900">
-            👋 Welcome back, <span className="text-[#e61717]">Rahul</span>
+            👋 Welcome back,{" "}
+            <span className="text-[#e61717]">
+              {session?.user?.name || "Worker"}
+            </span>
           </h1>
-
-          {/* ✅ Status Toggle */}
           <StatusToggle />
         </div>
 
@@ -97,7 +137,7 @@ export default function WorkerDashboard() {
 
         {/* Stats Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Earnings */}
+          {/* Earnings Overview */}
           <motion.div
             className="bg-white/70 backdrop-blur-lg rounded-2xl p-6 border border-white/60 shadow-md hover:shadow-xl transition"
             initial={{ borderColor: "#e61717" }}
@@ -116,7 +156,7 @@ export default function WorkerDashboard() {
             </button>
           </motion.div>
 
-          {/* Feedback */}
+          {/* Recent Feedback */}
           <div className="bg-white/70 backdrop-blur-lg rounded-2xl p-6 border border-white/60 shadow-md hover:shadow-xl transition">
             <h2 className="text-lg font-semibold mb-4 text-gray-800">
               Recent Feedback

@@ -8,6 +8,10 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const { data: session } = useSession();
 
+  const userRole = (session?.user as { role?: string })?.role;
+  const dashboardHref =
+    userRole === "user" ? "/user-dashboard" : "/worker-dashboard";
+
   const navItems = [
     { name: "Home", href: "/" },
     { name: "About", href: "/about" },
@@ -31,15 +35,26 @@ export default function Navbar() {
           </li>
         ))}
         {session ? (
-          <li className="relative group">
-            <button
-              onClick={() => signOut()}
-              className="inline-block relative pb-1 text-white bg-transparent border-none cursor-pointer"
-            >
-              Logout
-              <span className="absolute bottom-0 h-[2px] w-0 left-1/2 bg-[#e61717] transition-all duration-300 ease-in-out group-hover:w-full group-hover:left-0"></span>
-            </button>
-          </li>
+          <>
+            <li className="relative group">
+              <Link
+                href={dashboardHref}
+                className="inline-block relative pb-1 text-white"
+              >
+                Dashboard
+                <span className="absolute bottom-0 h-[2px] w-0 left-1/2 bg-[#e61717] transition-all duration-300 ease-in-out group-hover:w-full group-hover:left-0"></span>
+              </Link>
+            </li>
+            <li className="relative group">
+              <button
+                onClick={() => signOut()}
+                className="inline-block relative pb-1 text-white bg-transparent border-none cursor-pointer"
+              >
+                Logout
+                <span className="absolute bottom-0 h-[2px] w-0 left-1/2 bg-[#e61717] transition-all duration-300 ease-in-out group-hover:w-full group-hover:left-0"></span>
+              </button>
+            </li>
+          </>
         ) : (
           <li className="relative group">
             <Link
@@ -75,21 +90,34 @@ export default function Navbar() {
             </li>
           ))}
           {session ? (
-            <li>
-              <button
-                onClick={() => {
-                  signOut();
-                  setIsOpen(false);
-                }}
-                className="inline-block relative pb-1 text-white bg-transparent border-none cursor-pointer"
-              >
-                Logout
-              </button>
-            </li>
+            <>
+              <li className="relative group">
+                <Link
+                  href={dashboardHref}
+                  className="inline-block relative pb-1 text-white"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Dashboard
+                </Link>
+              </li>
+              <li>
+                <button
+                  onClick={() => {
+                    signOut();
+                    setIsOpen(false);
+                  }}
+                  className="inline-block relative pb-1 text-white bg-transparent border-none cursor-pointer"
+                >
+                  Logout
+                </button>
+              </li>
+            </>
           ) : (
-            <Link href="/login" onClick={() => setIsOpen(false)}>
-              Login
-            </Link>
+            <li>
+              <Link href="/login" onClick={() => setIsOpen(false)}>
+                Login
+              </Link>
+            </li>
           )}
         </ul>
       )}

@@ -3,8 +3,9 @@ import mongoose from "mongoose";
 const bookingSchema = new mongoose.Schema(
   {
     userId: {
-      type: String,
-      required: false, // later connect it to actual User model
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
     workerId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -18,6 +19,22 @@ const bookingSchema = new mongoose.Schema(
     date: {
       type: Date,
       required: true,
+    },
+    price: {
+      type: Number,
+      required: true,
+    },
+    slot: {
+      type: String,
+      required: true,
+    },
+    address: {
+      type: String,
+      required: true,
+    },
+    notes: {
+      type: String,
+      default: "",
     },
     status: {
       type: String,

@@ -3,20 +3,31 @@ import Worker from "@/models/worker";
 import { NextResponse } from "next/server";
 
 export async function GET(
-  req: Request,
-  { params }: { params: { service: string } }
+  request: Request,
+  context: { params: Promise<{ service: string }> } // 👈 params is async
 ) {
+  const { service } = await context.params; // 👈 MUST AWAIT
+
+  if (!service) {
+    return NextResponse.json(
+      { success: false, message: "Service parameter is missing" },
+      { status: 400 }
+    );
+  }
+
   try {
     await dbConnect();
-    const { service } = params;
 
     const workers = await Worker.find({
-      skills: { $in: [service.toLowerCase()] },
-    });
+      skills: { $regex: new RegExp(`^${service.replace("-", " ")}$`, "i") },
+    }).lean();
 
-    return NextResponse.json(workers);
+    return NextResponse.json({ success: true, workers });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ message: "Server error" }, { status: 500 });
+    console.error(`Error fetching workers for service: ${service}`, error);
+    return NextResponse.json(
+      { success: false, message: "Server error" },
+      { status: 500 }
+    );
   }
 }

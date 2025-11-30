@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 const steps = [
   { id: 1, title: "Basic Details" },
@@ -9,18 +11,21 @@ const steps = [
 ];
 
 const RegisterProfessional = () => {
+  const router = useRouter();
+  const { data: session, status } = useSession();
+
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
     phone: "",
-    password: "",
-    confirmPassword: "",
     address: "",
     city: "",
     state: "",
     pincode: "",
     skills: "",
     experience: "",
+    price: "",
+    avatar: null as File | null,
     idProof: null as File | null,
     certificate: null as File | null,
     description: "",
@@ -29,10 +34,11 @@ const RegisterProfessional = () => {
   const [step, setStep] = useState(1);
   const [errors, setErrors] = useState<string[]>([]);
   const [progress, setProgress] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // progress bar update
+  // Update progress bar
   useEffect(() => {
-    const totalFields = 13;
+    const totalFields = Object.keys(formData).length;
     let filled = 0;
     Object.values(formData).forEach((value) => {
       if (value) filled++;
@@ -40,7 +46,23 @@ const RegisterProfessional = () => {
     setProgress(Math.floor((filled / totalFields) * 100));
   }, [formData]);
 
-  // handle text and textarea input
+  // Redirect if user is already a worker or not logged in
+  useEffect(() => {
+    if (status === "loading") return; // Wait until session is loaded
+
+    if (!session?.user) {
+      router.push("/login"); // Redirect unauthenticated users
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      fullName: session.user?.name || "",
+      email: session.user?.email || "",
+    }));
+  }, [session, status, router]);
+
+  // Handle text/textarea input
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -48,7 +70,7 @@ const RegisterProfessional = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  // handle file input
+  // Handle file input
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, files } = e.target;
     if (files && files[0]) {
@@ -56,7 +78,7 @@ const RegisterProfessional = () => {
     }
   };
 
-  // validate each step
+  // Validate each step
   const validateStep = () => {
     const validationErrors: string[] = [];
     if (step === 1) {
@@ -64,12 +86,6 @@ const RegisterProfessional = () => {
         validationErrors.push("Full Name is required.");
       if (!formData.email.trim()) validationErrors.push("Email is required.");
       if (!formData.phone.trim()) validationErrors.push("Phone is required.");
-      if (!formData.password.trim())
-        validationErrors.push("Password is required.");
-      if (!formData.confirmPassword.trim())
-        validationErrors.push("Confirm Password is required.");
-      if (formData.password !== formData.confirmPassword)
-        validationErrors.push("Passwords do not match.");
       const phoneRegex = /^[6-9]\d{9}$/;
       if (!phoneRegex.test(formData.phone))
         validationErrors.push("Invalid phone number format.");
@@ -86,6 +102,9 @@ const RegisterProfessional = () => {
         validationErrors.push("Experience is required.");
       else if (isNaN(Number(formData.experience)))
         validationErrors.push("Experience must be a number (in years).");
+      if (!formData.price.trim()) validationErrors.push("Price is required.");
+      else if (isNaN(Number(formData.price)) || Number(formData.price) <= 0)
+        validationErrors.push("Price must be a positive number.");
     } else if (step === 3) {
       if (!formData.idProof) validationErrors.push("ID Proof is required.");
     }
@@ -99,69 +118,84 @@ const RegisterProfessional = () => {
 
   const handleBack = () => setStep((prev) => Math.max(prev - 1, 1));
 
-  // submit form to backend
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateStep()) {
-      const bodyData = {
-        name: formData.fullName,
-        email: formData.email,
-        phone: formData.phone,
-        password: formData.password,
-        location: {
-          city: formData.city,
-          state: formData.state,
-          pincode: formData.pincode,
-        },
-        skills: formData.skills,
-        experience: Number(formData.experience),
-        idProof: formData.idProof ? formData.idProof.name : "",
-        certificate: formData.certificate ? formData.certificate.name : "",
-        description: formData.description,
-      };
+    if (isSubmitting) return; // Prevent double submission
+    setIsSubmitting(true);
 
-      try {
-        const res = await fetch("/api/auth/register", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(bodyData),
-        });
-        const data = await res.json();
-        if (res.ok) {
-          alert("Worker registered successfully!");
-          setStep(1);
-          setFormData({
-            fullName: "",
-            email: "",
-            phone: "",
-            password: "",
-            confirmPassword: "",
-            address: "",
-            city: "",
-            state: "",
-            pincode: "",
-            skills: "",
-            experience: "",
-            idProof: null,
-            certificate: null,
-            description: "",
-          });
-        } else {
-          alert(data.message || "Something went wrong");
-        }
-      } catch (error) {
-        console.error("Error:", error);
-        alert("Server error. Please try again.");
-      }
+    if (!validateStep()) return;
+
+    // ✅ Add a check to ensure session and user exist before submission
+    if (!session?.user) {
+      alert("You must be logged in to register. Redirecting to login page.");
+      router.push("/login");
+      return;
+    }
+    const formDataToSend = new FormData();
+    formDataToSend.append("name", formData.fullName);
+    formDataToSend.append("email", formData.email);
+    formDataToSend.append("phone", formData.phone);
+    formDataToSend.append("address", formData.address);
+    formDataToSend.append("city", formData.city);
+    formDataToSend.append("state", formData.state);
+    formDataToSend.append("pincode", formData.pincode);
+    formDataToSend.append("skills", formData.skills);
+    formDataToSend.append("experience", formData.experience);
+    formDataToSend.append("price", formData.price);
+    formDataToSend.append("description", formData.description);
+    // Add the user ID from the session
+    formDataToSend.append("userId", (session.user as { id: string }).id);
+
+    if (formData.avatar) formDataToSend.append("avatar", formData.avatar);
+    if (formData.idProof) formDataToSend.append("idProof", formData.idProof);
+    if (formData.certificate)
+      formDataToSend.append("certificate", formData.certificate);
+
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        body: formDataToSend, // ✅ No headers needed
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Something went wrong");
+
+      alert(data.message || "Operation successful!");
+      router.push("/worker-dashboard");
+
+      setStep(1);
+      setFormData({
+        fullName: "",
+        email: "",
+        phone: "",
+        address: "",
+        city: "",
+        state: "",
+        pincode: "",
+        skills: "",
+        experience: "",
+        price: "",
+        avatar: null,
+        idProof: null,
+        certificate: null,
+        description: "",
+      });
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : "An unknown error occurred. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <div className="relative w-full min-h-screen flex items-center justify-center px-4 py-8 bg-gray-900">
-      {/* blurry dark background */}
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
 
-      {/* form card */}
       <form
         className="relative z-10 bg-white rounded-3xl shadow-2xl max-w-xl w-full p-8 space-y-6"
         onSubmit={handleSubmit}
@@ -170,7 +204,7 @@ const RegisterProfessional = () => {
           Register as a Professional
         </h1>
 
-        {/* progress bar */}
+        {/* Progress bar */}
         <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
           <div
             className="bg-[#e61717] h-3 rounded-full transition-all"
@@ -181,7 +215,7 @@ const RegisterProfessional = () => {
           {progress}% Completed
         </p>
 
-        {/* step indicators */}
+        {/* Step indicators */}
         <div className="flex justify-between mb-6 relative">
           {steps.map((s, idx) => {
             const isCompleted = s.id < step;
@@ -203,7 +237,6 @@ const RegisterProfessional = () => {
                   {isCompleted ? "✓" : s.id}
                 </div>
                 <span className="text-xs mt-1 text-center">{s.title}</span>
-
                 {idx < steps.length - 1 && (
                   <div className="absolute top-4 right-0 w-full h-0.5 bg-gray-300 -z-10"></div>
                 )}
@@ -212,7 +245,7 @@ const RegisterProfessional = () => {
           })}
         </div>
 
-        {/* error messages */}
+        {/* Error messages */}
         {errors.length > 0 && (
           <div className="bg-red-100 text-red-700 p-3 rounded-lg space-y-1">
             <ul>
@@ -223,7 +256,7 @@ const RegisterProfessional = () => {
           </div>
         )}
 
-        {/* step 1 */}
+        {/* Step 1 */}
         {step === 1 && (
           <div className="space-y-4">
             <input
@@ -250,26 +283,10 @@ const RegisterProfessional = () => {
               value={formData.phone}
               onChange={handleChange}
             />
-            <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              className="p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-[#e61717]"
-              value={formData.password}
-              onChange={handleChange}
-            />
-            <input
-              type="password"
-              name="confirmPassword"
-              placeholder="Confirm Password"
-              className="p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-[#e61717]"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-            />
           </div>
         )}
 
-        {/* step 2 */}
+        {/* Step 2 */}
         {step === 2 && (
           <div className="space-y-4">
             <input
@@ -309,7 +326,7 @@ const RegisterProfessional = () => {
             <input
               type="text"
               name="skills"
-              placeholder="Skills"
+              placeholder="Skills (comma-separated)"
               className="p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-[#e61717]"
               value={formData.skills}
               onChange={handleChange}
@@ -322,10 +339,18 @@ const RegisterProfessional = () => {
               value={formData.experience}
               onChange={handleChange}
             />
+            <input
+              type="number"
+              name="price"
+              placeholder="Price per service (e.g., 500)"
+              className="p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-[#e61717]"
+              value={formData.price}
+              onChange={handleChange}
+            />
           </div>
         )}
 
-        {/* step 3 */}
+        {/* Step 3 */}
         {step === 3 && (
           <div className="space-y-4">
             <label className="flex flex-col p-3 border rounded-lg cursor-pointer hover:bg-gray-100 transition">
@@ -337,6 +362,16 @@ const RegisterProfessional = () => {
                 onChange={handleFileChange}
               />
               {formData.idProof && <span>{formData.idProof.name}</span>}
+            </label>
+            <label className="flex flex-col p-3 border rounded-lg cursor-pointer hover:bg-gray-100 transition">
+              Upload Avatar (Optional)
+              <input
+                type="file"
+                name="avatar"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+              {formData.avatar && <span>{formData.avatar.name}</span>}
             </label>
             <label className="flex flex-col p-3 border rounded-lg cursor-pointer hover:bg-gray-100 transition">
               Upload Certificate (Optional)
@@ -358,7 +393,7 @@ const RegisterProfessional = () => {
           </div>
         )}
 
-        {/* navigation buttons */}
+        {/* Navigation buttons */}
         <div className="flex justify-between mt-4">
           {step > 1 && (
             <button
@@ -381,9 +416,10 @@ const RegisterProfessional = () => {
           {step === steps.length && (
             <button
               type="submit"
-              className="ml-auto bg-[#e61717] text-white px-6 py-2 rounded-lg hover:bg-black transition"
+              disabled={isSubmitting}
+              className="ml-auto bg-[#e61717] text-white px-6 py-2 rounded-lg hover:bg-black transition disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              Submit
+              {isSubmitting ? "Submitting..." : "Submit"}
             </button>
           )}
         </div>

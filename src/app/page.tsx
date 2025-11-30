@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
@@ -13,6 +13,17 @@ export default function Home(): React.ReactElement {
   const toggleFAQ = (index: number) => {
     setOpenFAQ(openFAQ === index ? null : index);
   };
+
+  // The session object from next-auth might need type augmentation to include `role`.
+  const userRole = (session?.user as { role?: string })?.role;
+
+  const registrationHref = useMemo(() => {
+    // If user is logged in, link to registration page to add/update skills.
+    if (session) {
+      return "/registration";
+    }
+    return "/login"; // Otherwise, link to login.
+  }, [session, userRole]);
 
   const faqs = [
     {
@@ -95,7 +106,7 @@ export default function Home(): React.ReactElement {
   return (
     <main className="bg-gradient-to-b from-[#f5f6f2]/95 to-[#e5eaee]/90 text-center min-h-screen">
       {/* 🟦 Full-width Hero Section */}
-      <section className="w-full bg-[#a8c6d8] py-16 px-6 mt-4 text-center shadow-inner">
+      <section className="w-full bg-[#a8c6d8] py-16 px-6 mt-6 text-center shadow-inner">
         <div className="max-w-5xl mx-auto">
           <h1 className="text-4xl md:text-5xl font-bold text-[#F5F5EF] drop-shadow-sm">
             Welcome to <span className="text-[#1f2839]">UrbanSetGo</span>
@@ -111,7 +122,7 @@ export default function Home(): React.ReactElement {
               </button>
             </Link>
 
-            <Link href="/registration">
+            <Link href={registrationHref}>
               <button className="border-2 border-[#e61717] font-medium text-[#e61717] px-6 py-2.5 rounded-lg hover:bg-[#e61717] hover:text-white hover:scale-105 transition-transform duration-200">
                 Register as a Professional
               </button>

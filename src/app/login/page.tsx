@@ -4,9 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { getSession } from "next-auth/react";
+
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("");
+  const [identifier, setIdentifier] = useState(""); // email or username
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
@@ -14,28 +16,38 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!username || !password) {
+    if (!identifier || !password) {
       setError("Please provide both email/username and password.");
       return;
     }
 
     try {
       const res = await signIn("credentials", {
-        email: username,
-        password: password,
-        redirect: false,
-      });
-
-      if (res?.error) {
-        setError("Invalid Credentials");
-        return;
-      }
+      identifier, // username or email
+      password,
+      redirect: false,
+    });
 
       if (res?.ok) {
-        router.replace("/user-dashboard");
+        // ✅ Get current session (contains user + role)
+        const session = await getSession();
+        const role = session?.user?.role as "worker" | "user" | undefined;
+
+        // ✅ Redirect based on role
+        if (role === "worker") {
+          router.replace("/worker-dashboard");
+        } else {
+          router.replace("/user-dashboard");
+        }
       }
-    } catch (error) {
-      console.error("LOGIN_ERROR:", error);
+
+
+      if (res?.error) {
+        setError("Invalid credentials");
+        return;
+      }
+    } catch (err) {
+      console.error("LOGIN_ERROR:", err);
       setError("An error occurred during login.");
     }
   };
@@ -45,9 +57,8 @@ export default function LoginPage() {
       className="min-h-screen flex items-center justify-center p-6 bg-cover bg-center"
       style={{ backgroundImage: "url('/image/login.jpg')" }}
     >
-      
       <div className="grid grid-cols-1 md:grid-cols-2 w-11/12 sm:w-4/5 lg:max-w-3xl rounded-2xl overflow-hidden shadow-2xl bg-white/20 backdrop-blur-lg border border-white/40 hover:border-white/60 transition-all duration-300 transform hover:scale-[1.02]">
-        
+        {/* Left side */}
         <div className="bg-black bg-opacity-80 flex items-center justify-center p-6">
           <div className="text-white text-center space-y-2">
             <h2 className="text-2xl sm:text-3xl font-bold">Welcome Back!</h2>
@@ -60,7 +71,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        
+        {/* Right side - form */}
         <div className="flex items-center justify-center p-6">
           <form
             className="w-full space-y-4 bg-white/40 backdrop-blur-lg rounded-xl p-6 border border-white/30 shadow-md"
@@ -76,9 +87,9 @@ export default function LoginPage() {
 
             <input
               type="text"
-              placeholder="Username or Email"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Email or Username"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
               required
               className="w-full p-2.5 rounded-lg border border-gray-400 focus:outline-none focus:ring-2 focus:ring-[#e61717] bg-white/60 text-black placeholder-gray-800 transition"
             />
@@ -93,9 +104,9 @@ export default function LoginPage() {
             />
 
             <div className="flex items-center justify-between text-sm">
-              <a href="#" className="text-[#e61717] hover:underline">
+              <Link href="#" className="text-[#e61717] hover:underline">
                 Forgot Password?
-              </a>
+              </Link>
             </div>
 
             <button
