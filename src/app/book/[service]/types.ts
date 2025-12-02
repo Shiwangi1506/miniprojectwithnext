@@ -1,30 +1,15 @@
 export interface Worker {
   _id: string;
   name: string;
-  email: string;
-  phone?: string;
+  avatar?: string;
+  description?: string;
+  experience?: number;
   skills: string[];
-  experience: number;
-  location: {
-    city: string;
-    state?: string;
-    pincode?: string;
-    coordinates?: {
-      type: "Point";
-      coordinates: [number, number];
-    };
-  };
-  idProof?: string;
-  certificate?: string;
-  description?: string; // ✅ added this
-  bio?: string; // optional short summary
-  avatar?: string; // image URL
-  rating?: number; // optional rating field
-  reviews?: number; // optional
-  topRated?: boolean;
   verified?: boolean;
+  phone?: string;
+  address?: string;
+  location?: { city: string };
   price?: number;
-  availability?: string[];
-  slots?: string[];
-  createdAt?: string;
+  rating?: number;
+  reviews?: number;
 }

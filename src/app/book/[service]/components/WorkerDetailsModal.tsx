@@ -14,7 +14,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { Worker } from "../types";
-import { AddReviewForm } from "./AddReviewForm";
+// import { AddReviewForm } from "./AddReviewForm";
 
 interface WorkerDetailsModalProps {
   worker: Worker | null;
@@ -187,7 +187,7 @@ export const WorkerDetailsModal: React.FC<WorkerDetailsModalProps> = ({
             </div>
 
             {/* Add Review Form */}
-            <AddReviewForm worker={worker} onReviewAdded={fetchFeedback} />
+            {/* <AddReviewForm worker={worker} onReviewAdded={fetchFeedback} /> */}
 
             {/* Footer */}
             <div className="p-5 border-t bg-gray-50 mt-auto">

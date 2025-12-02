@@ -80,8 +80,11 @@ export const BookingDrawer: React.FC<BookingDrawerProps> = ({
                 />
                 <div>
                   <div className="text-lg font-semibold">{worker.name}</div>
-                  <div className="text-sm text-gray-600">
-                    {worker.location.city} • {worker.experience} yrs
+                  <div className="text-sm text-gray-600 truncate">
+                    {[worker.address, worker.location?.city]
+                      .filter(Boolean)
+                      .join(", ") || "Location not specified"}{" "}
+                    • {worker.experience} yrs
                   </div>
                   <div className="text-sm text-yellow-500 mt-1 flex items-center gap-2">
                     <FaStar />

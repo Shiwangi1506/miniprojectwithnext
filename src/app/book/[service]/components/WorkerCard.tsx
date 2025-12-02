@@ -1,7 +1,12 @@
 "use client";
 import React from "react";
 import { Worker } from "../types";
-import { FaCheckCircle, FaStar, FaBriefcase } from "react-icons/fa";
+import {
+  FaCheckCircle,
+  FaBriefcase,
+  FaMapMarkerAlt,
+  FaPhone,
+} from "react-icons/fa";
 
 interface WorkerCardProps {
   worker: Worker;
@@ -19,8 +24,10 @@ export const WorkerCard: React.FC<WorkerCardProps> = ({
 
   // ✅ use real fields safely
   const name = worker.name || "Unnamed Worker";
-  const city = worker.location?.city || "Unknown City";
+  const address =
+    worker.address || worker.location?.city || "Location not provided";
   const description = worker.description || "No description provided.";
+  const phone = worker.phone || "Not available";
   const experience = worker.experience ?? 0;
   const skills = worker.skills || [];
   const verified = worker.verified ?? false;
@@ -43,13 +50,21 @@ export const WorkerCard: React.FC<WorkerCardProps> = ({
         <div className="flex items-start justify-between gap-3">
           <div>
             <h4 className="font-semibold text-gray-800">{name}</h4>
-            <p className="text-sm text-gray-500 mt-1">{city}</p>
+            <div className="flex items-center gap-1.5 text-sm text-gray-500 mt-1">
+              <FaMapMarkerAlt className="text-gray-400" />
+              <span className="truncate">{address}</span>
+            </div>
 
             <div className="flex items-center gap-2 mt-2 text-sm text-gray-600">
               <FaBriefcase className="text-gray-400" />
-              <span>
+              <span className="pt-px">
                 {experience} year{experience !== 1 ? "s" : ""} experience
               </span>
+            </div>
+
+            <div className="flex items-center gap-2 mt-2 text-sm text-gray-600">
+              <FaPhone className="text-gray-400" size={12} />
+              <span className="pt-px">{phone}</span>
             </div>
           </div>
         </div>

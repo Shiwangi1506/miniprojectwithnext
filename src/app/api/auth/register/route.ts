@@ -67,13 +67,14 @@ export async function POST(request: Request) {
       name,
       email,
       phone,
+      address,
       location: {
         city,
       },
       skills: skills.split(",").map((s) => s.trim()),
       experience: Number(experience),
       price: Number(price),
-      description,
+      description: description, // This was missing from the object being saved
       avatar: avatarUrl,
     });
 
