@@ -53,6 +53,7 @@ const RegisterProfessional = () => {
   const [errors, setErrors] = useState<string[]>([]);
   const [progress, setProgress] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
   // Update progress bar
   useEffect(() => {
@@ -180,8 +181,10 @@ const RegisterProfessional = () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Something went wrong");
 
-      alert(data.message || "Operation successful!");
-      router.push("/worker-dashboard");
+      setShowSuccessPopup(true);
+      setTimeout(() => {
+        router.push("/worker-dashboard");
+      }, 3000); // Redirect after 3 seconds
 
       setStep(1);
       setFormData({
@@ -216,6 +219,18 @@ const RegisterProfessional = () => {
     <div className="relative w-full min-h-screen flex items-center justify-center px-4 py-8 bg-gray-900">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
 
+      {showSuccessPopup && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50">
+          <div className="bg-white p-8 rounded-lg shadow-2xl text-center max-w-sm w-full">
+            <h2 className="text-2xl font-bold text-green-600 mb-4">
+              Registration Successful!
+            </h2>
+            <p className="text-gray-700">
+              You will be redirected to your dashboard shortly.
+            </p>
+          </div>
+        </div>
+      )}
       <form
         className="relative z-10 bg-white rounded-3xl shadow-2xl max-w-xl w-full p-8 space-y-6"
         onSubmit={handleSubmit}

@@ -22,7 +22,7 @@ export default function StatusToggle() {
           layout
           transition={{ type: "spring", stiffness: 500, damping: 30 }}
           style={{
-            x: isActive ? 0 : 24,
+            x: isActive ? 24 : 0,
           }}
         >
           {isActive ? (

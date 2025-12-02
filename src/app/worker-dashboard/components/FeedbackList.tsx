@@ -1,29 +1,38 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
 import { FaQuoteLeft } from "react-icons/fa";
+import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 
 interface Feedback {
-  name: string;
+  name?: string;
   comment: string;
   role?: string; // optional role or user type (e.g. "Customer", "Technician")
-  userName: string;
+  userName?: string; // Making userName optional to match mockData
 }
 
-export default function FeedbackList() {
-  const [feedback, setFeedback] = useState<Feedback[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+interface FeedbackListProps {
+  feedback?: Feedback[];
+}
+
+export default function FeedbackList({
+  feedback: initialFeedback,
+}: FeedbackListProps) {
+  const [feedback, setFeedback] = useState<Feedback[]>(initialFeedback || []);
+  const [isLoading, setIsLoading] = useState<boolean>(!initialFeedback);
 
   useEffect(() => {
+    // If initial feedback was supplied via props, do not fetch again
+    if (initialFeedback) return;
+
     const fetchFeedback = async () => {
+      setIsLoading(true);
       try {
-        // This API route needs to be created to fetch feedback for the logged-in worker
         const res = await fetch("/api/workers/feedback");
         if (!res.ok) throw new Error("Failed to fetch feedback");
         const data = await res.json();
-        setFeedback(data.feedback || []); // Ensure feedback is always an array
+        setFeedback(data.feedback || []);
       } catch (error) {
         console.error(error);
       } finally {
@@ -31,12 +40,20 @@ export default function FeedbackList() {
       }
     };
     fetchFeedback();
-  }, []);
+  }, [initialFeedback]);
 
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-40">
         <Loader2 className="animate-spin text-[#e61717]" size={32} />
+      </div>
+    );
+  }
+
+  if (!feedback || feedback.length === 0) {
+    return (
+      <div className="text-center text-gray-500 py-8">
+        <p>No feedback available yet.</p>
       </div>
     );
   }
@@ -66,7 +83,9 @@ export default function FeedbackList() {
 
           {/* Author Info */}
           <div className="mt-4 text-right">
-            <p className="text-sm font-semibold text-gray-900">{f.userName}</p>
+            <p className="text-sm font-semibold text-gray-900">
+              {f.userName || f.name}
+            </p>
             {f.role && <p className="text-xs text-gray-500">{f.role}</p>}
           </div>
         </motion.div>

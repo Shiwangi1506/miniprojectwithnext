@@ -4,18 +4,10 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import {
-  CalendarDays,
-  Wallet,
-  UserCog,
-  Settings,
-  CheckCircle,
-  XCircle,
-  Loader2,
-} from "lucide-react";
+import { CalendarDays, Wallet, UserCog, Settings, Loader2 } from "lucide-react";
 
 import Sidebar from "./components/Sidebar";
-import DashboardCard from "./components/DashboardCard";
+import StatusToggle from "./components/StatusToggle";
 import PieChart from "./components/LivePieChart";
 import FeedbackList from "./components/FeedbackList";
 import ViewTodaysJobsModal from "./components/viewJob";
@@ -38,41 +30,15 @@ interface DashboardStats {
   totalEarnings: number;
 }
 
+interface Feedback {
+  name: string;
+  comment: string;
+}
+
 interface DashboardData {
   worker: WorkerDetails;
   stats: DashboardStats;
-  recentFeedback: any[]; // This will be the static mock data for now
-}
-
-// ✅ Status Toggle Component
-function StatusToggle() {
-  const [isActive, setIsActive] = useState(true);
-
-  return (
-    <div className="flex items-center gap-2">
-      <span className="text-gray-600 font-medium text-xs">Work Status:</span>
-      <motion.button
-        onClick={() => setIsActive(!isActive)}
-        className={`relative w-12 h-6 flex items-center px-1 rounded-full cursor-pointer transition-colors ${
-          isActive ? "bg-green-500" : "bg-gray-400"
-        }`}
-        whileTap={{ scale: 0.95 }}
-      >
-        <motion.div
-          className="bg-white w-5 h-5 rounded-full shadow flex items-center justify-center"
-          layout
-          transition={{ type: "spring", stiffness: 500, damping: 30 }}
-          style={{ x: isActive ? 24 : 0 }}
-        >
-          {isActive ? (
-            <CheckCircle size={14} className="text-green-500" />
-          ) : (
-            <XCircle size={14} className="text-gray-500" />
-          )}
-        </motion.div>
-      </motion.button>
-    </div>
-  );
+  recentFeedback: Feedback[];
 }
 
 // ✅ Main Worker Dashboard Component
