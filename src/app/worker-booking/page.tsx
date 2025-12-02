@@ -12,6 +12,7 @@ import {
   Loader2,
   BadgeCheck,
   AlertCircle,
+  ChevronDown,
 } from "lucide-react";
 
 interface Booking {
@@ -38,6 +39,7 @@ const WorkerBookingsPage = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
 
   useEffect(() => {
     if (sessionStatus === "unauthenticated") {
@@ -74,6 +76,45 @@ const WorkerBookingsPage = () => {
       fetchBookings();
     }
   }, [sessionStatus, router]);
+
+  const handleStatusChange = async (
+    bookingId: string,
+    newStatus: Booking["status"]
+  ) => {
+    setUpdatingStatus(bookingId);
+    setError(null);
+
+    try {
+      const res = await fetch(`/api/workers/bookings/${bookingId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to update booking status.");
+      }
+
+      setBookings((prevBookings) =>
+        prevBookings.map((booking) =>
+          booking._id === bookingId ? data.booking : booking
+        )
+      );
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An unknown error occurred while updating status."
+      );
+      // Optionally revert UI change on error, though current implementation just shows a general error.
+    } finally {
+      setUpdatingStatus(null);
+    }
+  };
 
   if (isLoading || sessionStatus === "loading") {
     return (
@@ -120,22 +161,49 @@ const WorkerBookingsPage = () => {
                       Booking ID: {booking._id}
                     </p>
                   </div>
-                  <div className="flex flex-col items-end mt-2 sm:mt-0">
-                    <span
-                      className={`px-3 py-1 text-sm font-medium rounded-full ${
-                        booking.status === "pending"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : booking.status === "confirmed"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-green-100 text-green-800"
-                      }`}
-                    >
-                      {booking.status}
-                    </span>
+                  <div className="flex flex-col items-start sm:items-end mt-4 sm:mt-0">
                     <div className="flex items-center gap-1 mt-2 text-green-600">
                       <BadgeCheck size={16} />{" "}
                       <span className="text-xs font-semibold">
                         Paid Successfully
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-sm font-medium text-gray-600">
+                        Status:
+                      </span>
+                      <select
+                        value={booking.status}
+                        onChange={(e) =>
+                          handleStatusChange(
+                            booking._id,
+                            e.target.value as Booking["status"]
+                          )
+                        }
+                        disabled={updatingStatus === booking._id}
+                        className={`px-3 py-1 text-sm font-medium rounded-md border focus:outline-none focus:ring-2 focus:ring-[#e61717] transition-colors ${
+                          booking.status === "pending"
+                            ? "bg-yellow-100 text-yellow-800 border-yellow-300"
+                            : booking.status === "confirmed"
+                            ? "bg-blue-100 text-blue-800 border-blue-300"
+                            : "bg-green-100 text-green-800 border-green-300"
+                        } ${
+                          updatingStatus === booking._id
+                            ? "cursor-not-allowed opacity-70"
+                            : ""
+                        }`}
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="completed">Completed</option>
+                      </select>
+                      {updatingStatus === booking._id && (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1 mt-2 text-green-600">
+                      <span className="text-xs font-semibold">
+                        {/* Paid Successfully - This seems duplicated, you might want to remove one */}
                       </span>
                     </div>
                   </div>

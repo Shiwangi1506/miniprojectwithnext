@@ -15,6 +15,7 @@ declare module "next-auth" {
       name?: string;
       email?: string;
       role?: string;
+      image?: string;
     };
   }
 }
@@ -46,7 +47,7 @@ export const authOptions: NextAuthOptions = {
         const user = await User.findOne({
           $or: [
             { email: credentials.identifier },
-            { name: credentials.identifier },
+            { username: credentials.identifier },
           ],
         });
 
@@ -65,6 +66,7 @@ export const authOptions: NextAuthOptions = {
           name: user.username,
           email: user.email,
           role: user.role,
+          image: (user as any).avatar, // Assuming the user model might have an avatar
         };
       },
     }),
@@ -82,6 +84,7 @@ export const authOptions: NextAuthOptions = {
       if (token) {
         session.user.id = token.id;
         session.user.role = token.role;
+        // You can add other properties from the token to the session here
       }
       return session;
     },

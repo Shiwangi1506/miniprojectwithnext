@@ -4,9 +4,9 @@ import { NextResponse } from "next/server";
 
 export async function GET(
   request: Request,
-  context: { params: Promise<{ service: string }> } // 👈 params is async
+  context: { params: { service: string } }
 ) {
-  const { service } = await context.params; // 👈 MUST AWAIT
+  const { service } = context.params;
 
   if (!service) {
     return NextResponse.json(

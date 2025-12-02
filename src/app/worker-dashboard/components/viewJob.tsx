@@ -1,17 +1,21 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, CalendarDays, Wrench, Droplets, Zap } from "lucide-react"; // Added icons
+import { X, CalendarDays, Wrench, Droplets, Zap, Loader2 } from "lucide-react"; // Added icons
 
-interface Job {
-  id: number;
-  service: string;
-  customer: string;
+interface BookingData {
+  _id: string;
+  serviceType: string;
+  userId: {
+    username: string;
+    email: string;
+  };
+  date: string; // Assuming date is a string like "YYYY-MM-DD" or ISO string
   time: string;
   location: string;
-  status: "Pending" | "Completed" | "Ongoing";
-  icon: React.ReactNode;
+  status: "pending" | "completed" | "cancelled" | "ongoing";
+  price: number;
 }
 
 interface Props {
@@ -19,37 +23,59 @@ interface Props {
   onClose: () => void;
 }
 
-const mockJobs: Job[] = [
-  {
-    id: 1,
-    service: "AC Repair",
-    customer: "Rohit Sharma",
-    time: "10:30 AM",
-    location: "Gomti Nagar, Lucknow",
-    status: "Ongoing",
-    icon: <Wrench size={20} className="text-[#e61717]" />,
-  },
-  {
-    id: 2,
-    service: "Plumber Service",
-    customer: "Neha Verma",
-    time: "1:00 PM",
-    location: "Aliganj, Lucknow",
-    status: "Pending",
-    icon: <Droplets size={20} className="text-[#e61717]" />,
-  },
-  {
-    id: 3,
-    service: "Electrician Visit",
-    customer: "Amit Singh",
-    time: "4:00 PM",
-    location: "Hazratganj, Lucknow",
-    status: "Pending",
-    icon: <Zap size={20} className="text-[#e61717]" />,
-  },
-];
-
 export default function ViewTodaysJobsModal({ isOpen, onClose }: Props) {
+  const [bookings, setBookings] = useState<BookingData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      const fetchBookings = async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+          const res = await fetch("/api/workers/bookings");
+          const result = await res.json();
+          if (!res.ok) {
+            throw new Error(result.message || "Failed to fetch bookings.");
+          }
+
+          const today = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
+          const todaysBookings = result.bookings.filter(
+            (booking: BookingData) => booking.date.startsWith(today)
+          );
+          setBookings(todaysBookings);
+        } catch (err) {
+          setError(
+            err instanceof Error ? err.message : "An unknown error occurred."
+          );
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      fetchBookings();
+    }
+  }, [isOpen]);
+
+  const getServiceIcon = (serviceType: string) => {
+    // Add a guard clause to handle undefined or null serviceType
+    if (!serviceType) {
+      return <Wrench size={20} className="text-[#e61717]" />; // Return a default icon
+    }
+    switch (serviceType.toLowerCase()) {
+      case "ac repair":
+        return <Wrench size={20} className="text-[#e61717]" />;
+      case "plumber service":
+        return <Droplets size={20} className="text-[#e61717]" />;
+      case "electrician visit":
+        return <Zap size={20} className="text-[#e61717]" />;
+      // Add more cases for other service types as needed
+      default:
+        return <Wrench size={20} className="text-[#e61717]" />; // Default icon
+    }
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -83,38 +109,59 @@ export default function ViewTodaysJobsModal({ isOpen, onClose }: Props) {
             </div>
 
             {/* Job List */}
-            <div className="space-y-4">
-              {mockJobs.map((job) => (
-                <div
-                  key={job.id}
-                  className="bg-[#181818] border border-gray-700 p-4 rounded-lg 
-                             flex justify-between items-center hover:border-[#e61717]/70 transition-all"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="mt-1">{job.icon}</div>
-                    <div>
-                      <p className="font-medium text-gray-100">{job.service}</p>
-                      <p className="text-sm text-gray-400">
-                        {job.customer} • {job.time}
-                      </p>
-                      <p className="text-xs text-gray-500">{job.location}</p>
-                    </div>
-                  </div>
-
-                  <span
-                    className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      job.status === "Completed"
-                        ? "bg-green-600/20 text-green-400"
-                        : job.status === "Ongoing"
-                        ? "bg-blue-600/20 text-blue-400"
-                        : "bg-yellow-600/20 text-yellow-400"
-                    }`}
+            {isLoading ? (
+              <div className="flex justify-center items-center h-48">
+                <Loader2 className="animate-spin text-[#e61717]" />
+              </div>
+            ) : error ? (
+              <p className="text-red-400 text-center">{error}</p>
+            ) : bookings.length === 0 ? (
+              <p className="text-gray-400 text-center">
+                No jobs scheduled for today.
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {bookings.map((booking) => (
+                  <div
+                    key={booking._id}
+                    className="bg-[#181818] border border-gray-700 p-4 rounded-lg 
+                               flex justify-between items-center hover:border-[#e61717]/70 transition-all"
                   >
-                    {job.status}
-                  </span>
-                </div>
-              ))}
-            </div>
+                    <div className="flex items-start gap-3">
+                      <div className="mt-1">
+                        {getServiceIcon(booking.serviceType)}
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-100">
+                          {booking.serviceType}
+                        </p>
+                        <p className="text-sm text-gray-400">
+                          {booking.userId.username} • {booking.time}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {booking.location}
+                        </p>
+                      </div>
+                    </div>
+
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        booking.status === "completed"
+                          ? "bg-green-600/20 text-green-400"
+                          : booking.status === "ongoing"
+                          ? "bg-blue-600/20 text-blue-400"
+                          : booking.status === "pending"
+                          ? "bg-yellow-600/20 text-yellow-400"
+                          : "bg-gray-600/20 text-gray-400" // For 'cancelled' or other statuses
+                      }`}
+                    >
+                      {booking.status.charAt(0).toUpperCase() +
+                        booking.status.slice(1)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Footer */}
             <div className="mt-6 text-right">

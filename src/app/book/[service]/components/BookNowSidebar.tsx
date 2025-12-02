@@ -1,33 +1,61 @@
 "use client";
 import React from "react";
 import { Worker } from "../types";
+import { IService } from "@/models/service";
 import { FaShieldAlt, FaCheckCircle } from "react-icons/fa";
+import {
+  Wrench,
+  Zap,
+  Paintbrush,
+  Hammer,
+  Scissors,
+  Sparkles,
+  PersonStanding,
+  type LucideProps,
+} from "lucide-react";
 
 interface BookNowSidebarProps {
   service: string;
+  serviceDetails: IService | null;
   filteredWorkers: Worker[];
 }
 
+const serviceIconMap: Record<string, React.FC<LucideProps>> = {
+  plumber: Wrench,
+  electrician: Zap,
+  painter: Paintbrush,
+  carpenter: Hammer,
+  tailor: Scissors,
+  "house-cleaning": Sparkles,
+  dancer: PersonStanding,
+};
+
+const getServiceIcon = (serviceSlug: string) => {
+  const Icon = serviceIconMap[serviceSlug.toLowerCase()];
+  // Return a default icon if no specific one is found
+  return Icon ? <Icon size={32} /> : <Wrench size={32} />;
+};
+
 export const BookNowSidebar: React.FC<BookNowSidebarProps> = ({
   service,
+  serviceDetails,
   filteredWorkers,
 }) => {
   return (
     <div className="lg:col-span-4 sticky top-28 self-start flex flex-col gap-4">
       <div className="bg-white border rounded-2xl p-4 shadow-sm">
         <div className="flex items-center gap-3">
-          <img
-            src="https://images.unsplash.com/photo-1603415526960-f7e0328c63b1?w=1000&q=80"
-            alt="service"
-            className="w-20 h-20 object-cover rounded-xl"
-          />
+          <div className="w-20 h-20 flex items-center justify-center bg-[#e61717]/10 text-[#e61717] rounded-xl">
+            {getServiceIcon(service)}
+          </div>
+
           <div>
             <h3 className="text-lg font-semibold capitalize">
-              {service.replace("-", " ")}
+              {serviceDetails?.name || service.replace("-", " ")}
             </h3>
             <p className="text-sm text-gray-600 mt-1">
-              Trusted professionals for quick and reliable service at your
-              doorstep.
+              {serviceDetails?.description ||
+                "Trusted professionals for quick and reliable service."}
             </p>
           </div>
         </div>

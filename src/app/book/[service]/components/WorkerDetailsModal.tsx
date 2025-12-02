@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -10,8 +10,11 @@ import {
   Award,
   FileText,
   ShieldCheck,
+  MessageSquare,
+  Loader2,
 } from "lucide-react";
 import { Worker } from "../types";
+import { AddReviewForm } from "./AddReviewForm";
 
 interface WorkerDetailsModalProps {
   worker: Worker | null;
@@ -26,6 +29,32 @@ export const WorkerDetailsModal: React.FC<WorkerDetailsModalProps> = ({
   onClose,
   onBook,
 }) => {
+  const [feedback, setFeedback] = useState<any[]>([]);
+  const [isLoadingFeedback, setIsLoadingFeedback] = useState(false);
+
+  const fetchFeedback = async () => {
+    if (!worker) return;
+    setIsLoadingFeedback(true);
+    try {
+      // This API route needs to be created
+      const res = await fetch(`/api/feedback/${worker._id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setFeedback(data.feedback);
+      }
+    } catch (error) {
+      console.error("Failed to fetch feedback", error);
+    } finally {
+      setIsLoadingFeedback(false);
+    }
+  };
+
+  useEffect(() => {
+    if (open && worker) {
+      fetchFeedback();
+    }
+  }, [open, worker]);
+
   if (!worker) return null;
 
   return (
@@ -119,7 +148,46 @@ export const WorkerDetailsModal: React.FC<WorkerDetailsModalProps> = ({
                   </p>
                 </div>
               )}
+
+              {/* Reviews Section */}
+              <div>
+                <p className="font-semibold mb-3 text-gray-800 flex items-center gap-2">
+                  <MessageSquare size={16} /> Customer Reviews
+                </p>
+                <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
+                  {isLoadingFeedback ? (
+                    <div className="flex justify-center">
+                      <Loader2 className="animate-spin text-[#e61717]" />
+                    </div>
+                  ) : feedback.length > 0 ? (
+                    feedback.map((fb) => (
+                      <div key={fb._id} className="border-b pb-3">
+                        <div className="flex items-center gap-2 mb-1">
+                          <img
+                            src={fb.userAvatar || "/default-avatar.jpg"}
+                            alt={fb.userName}
+                            className="w-8 h-8 rounded-full object-cover"
+                          />
+                          <span className="font-semibold text-sm">
+                            {fb.userName}
+                          </span>
+                        </div>
+                        <p className="text-gray-600 text-sm italic">
+                          "{fb.comment}"
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-gray-500">
+                      No reviews yet. Be the first to leave one!
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
+
+            {/* Add Review Form */}
+            <AddReviewForm worker={worker} onReviewAdded={fetchFeedback} />
 
             {/* Footer */}
             <div className="p-5 border-t bg-gray-50 mt-auto">

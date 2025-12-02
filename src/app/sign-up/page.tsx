@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { CheckCircle } from "lucide-react";
 
 export default function SignupPage() {
   type Role = "user" | "worker";
@@ -11,6 +13,7 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState<Role>("user");
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,8 +43,10 @@ export default function SignupPage() {
 
       if (res.ok) {
         const data = await res.json();
-        alert(data.message);
-        window.location.href = "/login";
+        setShowSuccessPopup(true);
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 2000); // Wait 2 seconds before redirecting
       } else {
         if (contentType && contentType.includes("application/json")) {
           try {
@@ -71,9 +76,25 @@ export default function SignupPage() {
       className="min-h-screen flex items-center justify-center p-6 bg-cover bg-center"
       style={{ backgroundImage: "url('/image/login.jpg')" }}
     >
-      
+      {/* Success Popup */}
+      <AnimatePresence>
+        {showSuccessPopup && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.3 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+            className="fixed bottom-5 right-5 z-50 flex items-center gap-3 p-4 bg-white rounded-xl shadow-2xl border border-green-200"
+          >
+            <CheckCircle className="text-green-500" size={24} />
+            <div>
+              <p className="font-semibold text-gray-800">Sign Up Successful!</p>
+              <p className="text-sm text-gray-600">Redirecting to login...</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="grid grid-cols-1 md:grid-cols-2 w-11/12 sm:w-4/5 lg:max-w-3xl rounded-2xl overflow-hidden shadow-2xl bg-white/20 backdrop-blur-lg border border-white/40 hover:border-white/60 transition-all duration-300 transform hover:scale-[1.02]">
-        
         <div className="bg-[#e61717] bg-opacity-90 flex items-center justify-center p-6">
           <div className="text-white text-center space-y-2">
             <h2 className="text-2xl sm:text-3xl font-bold">Join UrbanSetGo</h2>
@@ -86,7 +107,6 @@ export default function SignupPage() {
           </div>
         </div>
 
-        
         <div className="flex items-center justify-center p-6">
           <form
             className="w-full space-y-4 bg-white/40 backdrop-blur-lg rounded-xl p-6 border border-white/30 shadow-md"

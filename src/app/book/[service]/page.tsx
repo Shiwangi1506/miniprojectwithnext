@@ -11,6 +11,7 @@ import { BookingDrawer } from "./components/BookingDrawer";
 import { WorkerDetailsModal } from "./components/WorkerDetailsModal";
 import { BookingConfirmationModal } from "./components/BookingConfirmationModal";
 import { Worker } from "./types";
+import { IService } from "@/models/service";
 
 export default function BookNowPage({
   params,
@@ -24,6 +25,7 @@ export default function BookNowPage({
   // Workers data
   const [workers, setWorkers] = useState<Worker[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [serviceDetails, setServiceDetails] = useState<IService | null>(null);
 
   // Filters and UI
   const [search, setSearch] = useState("");
@@ -72,6 +74,18 @@ export default function BookNowPage({
         console.error("Error fetching workers:", error);
       } finally {
         setIsLoading(false);
+      }
+    };
+
+    const fetchServiceDetails = async () => {
+      try {
+        const res = await fetch(`/api/services/${service}`);
+        if (res.ok) {
+          const data = await res.json();
+          setServiceDetails(data.service);
+        }
+      } catch (error) {
+        console.error("Error fetching service details:", error);
       }
     };
 
@@ -211,7 +225,11 @@ export default function BookNowPage({
 
       {/* Worker list and sidebar */}
       <div className="max-w-7xl mx-auto px-6 pb-12 grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <BookNowSidebar service={service} filteredWorkers={filteredWorkers} />
+        <BookNowSidebar
+          service={service}
+          serviceDetails={serviceDetails}
+          filteredWorkers={filteredWorkers}
+        />
         <main className="lg:col-span-8">
           {isLoading ? (
             <div className="text-center py-10">

@@ -10,6 +10,24 @@ const steps = [
   { id: 3, title: "Verification & Documents" },
 ];
 
+const serviceOptions = [
+  "electrician",
+  "plumber",
+  "carpenter",
+  "painter",
+  "dancer",
+  "house-cleaning",
+  "maids",
+  "ac-repairers",
+  "fridge-repairers",
+  "cooks",
+  "beauticians",
+  "tailors",
+  "ro-technicians",
+  "tutors",
+  "decorators",
+];
+
 const RegisterProfessional = () => {
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -64,7 +82,9 @@ const RegisterProfessional = () => {
 
   // Handle text/textarea input
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -323,14 +343,22 @@ const RegisterProfessional = () => {
               value={formData.pincode}
               onChange={handleChange}
             />
-            <input
-              type="text"
+            <select
               name="skills"
-              placeholder="Skills (comma-separated)"
-              className="p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-[#e61717]"
               value={formData.skills}
               onChange={handleChange}
-            />
+              className="p-3 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-[#e61717]"
+            >
+              <option value="" disabled>
+                Select a service
+              </option>
+              {serviceOptions.map((service) => (
+                <option key={service} value={service}>
+                  {service.charAt(0).toUpperCase() +
+                    service.slice(1).replace("-", " ")}
+                </option>
+              ))}
+            </select>
             <input
               type="number"
               name="experience"

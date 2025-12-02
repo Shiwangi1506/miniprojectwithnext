@@ -15,10 +15,29 @@ import {
   X,
 } from "lucide-react";
 
+interface Booking {
+  _id: string;
+  serviceType: string; // This might be on the booking itself
+  date: string;
+  status: "pending" | "ongoing" | "completed" | "cancelled";
+  workerId?: {
+    // The worker is now populated
+    name: string;
+    skills: string[];
+  };
+}
+
+interface UserProfile {
+  username: string;
+  email: string;
+  role: string;
+  location?: { city: string };
+  bookings: Booking[];
+}
+
 export default function UserDashboard() {
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [bookings, setBookings] = useState<any[]>([]);
-  const [userProfile, setUserProfile] = useState<any>(null); // State for full user profile
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null); // State for full user profile
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -36,7 +55,13 @@ export default function UserDashboard() {
         try {
           const res = await fetch(`/api/user?email=${session.user.email}`);
           if (res.ok) {
-            const data = await res.json();
+            // Check if the response has content before parsing
+            const text = await res.text();
+            if (!text) {
+              console.warn("User profile response was empty.");
+              return;
+            }
+            const data = JSON.parse(text);
             setUserProfile(data);
           }
         } catch (error) {
@@ -48,30 +73,6 @@ export default function UserDashboard() {
     fetchUserProfile();
   }, [session]);
 
-  // ✅ Fetch bookings safely
-  useEffect(() => {
-    async function fetchBookings() {
-      try {
-        const res = await fetch("/api/bookings");
-        const data = await res.json();
-
-        // Ensure we store an array (fallback if API sends object)
-        if (Array.isArray(data)) {
-          setBookings(data);
-        } else if (data.bookings && Array.isArray(data.bookings)) {
-          setBookings(data.bookings);
-        } else {
-          console.warn("Unexpected bookings format:", data);
-          setBookings([]);
-        }
-      } catch (err) {
-        console.error("Failed to fetch bookings:", err);
-        setBookings([]);
-      }
-    }
-    fetchBookings();
-  }, []);
-
   if (status === "loading" || !session?.user || !userProfile) {
     return (
       <div className="flex justify-center items-center h-screen text-gray-600">
@@ -80,8 +81,11 @@ export default function UserDashboard() {
     );
   }
 
-  const activeBookings = bookings.filter((b) => b.status === "Active");
-  const completedBookings = bookings.filter((b) => b.status === "Completed");
+  const bookings = userProfile.bookings || [];
+  const activeBookings = bookings.filter(
+    (b) => b.status === "pending" || b.status === "ongoing"
+  );
+  const completedBookings = bookings.filter((b) => b.status === "completed");
 
   return (
     <div className="flex min-h-screen bg-gray-50 text-gray-900">
@@ -135,7 +139,7 @@ export default function UserDashboard() {
         {/* Booking History Table */}
         <div className="bg-white shadow-md p-4">
           <h2 className="text-lg font-semibold mb-3">Recent Bookings</h2>
-          {bookings.length > 0 ? (
+          {bookings && bookings.length > 0 ? (
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-gray-300">
@@ -145,15 +149,25 @@ export default function UserDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {bookings.map((booking, index) => (
-                  <tr key={index} className="border-b border-gray-200">
-                    <td className="py-2">{booking.service}</td>
+                {bookings.map((booking: Booking, index: number) => (
+                  <tr
+                    key={booking._id || index}
+                    className="border-b border-gray-200"
+                  >
+                    <td className="py-2 capitalize">
+                      {booking.serviceType ||
+                        booking.workerId?.skills[0] ||
+                        "N/A"}
+                    </td>
                     <td className="py-2">{booking.date}</td>
                     <td className="py-2">
                       <span
                         className={`px-2 py-0.5 rounded text-xs font-medium ${
-                          booking.status === "Active"
+                          booking.status === "pending" ||
+                          booking.status === "ongoing"
                             ? "bg-green-100 text-green-700"
+                            : booking.status === "completed"
+                            ? "bg-blue-100 text-blue-700"
                             : "bg-gray-100 text-gray-700"
                         }`}
                       >

@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
-import { Wallet, X } from "lucide-react"; // added professional icons
+import { Wallet, X, Loader2 } from "lucide-react"; // added professional icons
 
 interface CheckEarningsModalProps {
   isOpen: boolean;
@@ -21,32 +21,31 @@ export default function CheckEarningsModal({
   onClose,
 }: CheckEarningsModalProps) {
   const [earnings, setEarnings] = useState<Earning[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
-      // simulate fetch
-      setTimeout(() => {
-        setEarnings([
-          {
-            date: "2025-11-03",
-            jobTitle: "AC Repair",
-            amount: 1200,
-            status: "Completed",
-          },
-          {
-            date: "2025-11-03",
-            jobTitle: "Home Cleaning",
-            amount: 800,
-            status: "Pending",
-          },
-          {
-            date: "2025-11-02",
-            jobTitle: "Plumbing Fix",
-            amount: 950,
-            status: "Completed",
-          },
-        ]);
-      }, 500);
+      const fetchEarnings = async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+          const res = await fetch("/api/workers/earnings");
+          const result = await res.json();
+          if (!res.ok) {
+            throw new Error(result.message || "Failed to fetch earnings.");
+          }
+          setEarnings(result.earnings);
+        } catch (err) {
+          setError(
+            err instanceof Error ? err.message : "An unknown error occurred."
+          );
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      fetchEarnings();
     }
   }, [isOpen]);
 
@@ -86,8 +85,12 @@ export default function CheckEarningsModal({
 
             {/* Earning List */}
             <div className="max-h-[300px] overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
-              {earnings.length === 0 ? (
-                <p className="text-gray-400 text-center">Loading earnings...</p>
+              {isLoading ? (
+                <div className="flex justify-center items-center h-24">
+                  <Loader2 className="animate-spin text-[#e61717]" />
+                </div>
+              ) : error ? (
+                <p className="text-red-400 text-center">{error}</p>
               ) : (
                 earnings.map((earning, i) => (
                   <motion.div
@@ -105,7 +108,7 @@ export default function CheckEarningsModal({
                       <p
                         className={`font-semibold ${
                           earning.status === "Completed"
-                            ? "text-green-400"
+                            ? "text-green-400" // 'completed' from backend is capitalized here
                             : "text-yellow-400"
                         }`}
                       >

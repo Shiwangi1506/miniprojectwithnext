@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -11,6 +11,7 @@ import {
   Settings,
   CheckCircle,
   XCircle,
+  Loader2,
 } from "lucide-react";
 
 import Sidebar from "./components/Sidebar";
@@ -22,6 +23,26 @@ import CheckEarningsModal from "./components/checkEarnings";
 import EditProfileModal from "./components/editProfile";
 import ManageServicesModal from "./components/manageServices";
 import { mockFeedback } from "./data/mockData";
+
+// Define types for our fetched data
+interface WorkerDetails {
+  name: string;
+  email: string;
+  avatar?: string;
+}
+
+interface DashboardStats {
+  pending: number;
+  confirmed: number;
+  completed: number;
+  totalEarnings: number;
+}
+
+interface DashboardData {
+  worker: WorkerDetails;
+  stats: DashboardStats;
+  recentFeedback: any[]; // This will be the static mock data for now
+}
 
 // ✅ Status Toggle Component
 function StatusToggle() {
@@ -64,6 +85,33 @@ export default function WorkerDashboard() {
   const [isEarningsOpen, setIsEarningsOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isManageOpen, setIsManageOpen] = useState(false);
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(
+    null
+  );
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // ✅ Define fetchDashboardData outside useEffect, wrapped in useCallback
+  const fetchDashboardData = useCallback(async () => {
+    setIsLoading(true); // Set loading true when refetching
+    setError(null);
+    try {
+      const res = await fetch("/api/workers/dashboard");
+      const result = await res.json();
+
+      if (!res.ok) {
+        throw new Error(result.message || "Failed to fetch dashboard data.");
+      }
+
+      setDashboardData(result.data);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "An unknown error occurred."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, []); // Empty dependency array means this function is created only once
 
   // ✅ Protect route (check session and role)
   useEffect(() => {
@@ -78,13 +126,18 @@ export default function WorkerDashboard() {
       router.replace("/user-dashboard");
       return;
     }
-  }, [session, status, router]);
 
-  // ✅ Loading state
-  if (status === "loading") {
+    fetchDashboardData();
+  }, [session, status, router, fetchDashboardData]);
+
+  // ✅ Loading and error states
+  if (status === "loading" || isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-gray-600">
-        Checking session...
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <Loader2 className="h-12 w-12 animate-spin text-[#e61717]" />
+        <p className="ml-4 text-lg font-medium text-gray-700">
+          Loading Dashboard...
+        </p>
       </div>
     );
   }
@@ -105,7 +158,7 @@ export default function WorkerDashboard() {
           <h1 className="text-2xl font-bold text-gray-900">
             👋 Welcome back,{" "}
             <span className="text-[#e61717]">
-              {session?.user?.name || "Worker"}
+              {dashboardData?.worker.name || session?.user?.name || "Worker"}
             </span>
           </h1>
           <StatusToggle />
@@ -177,6 +230,7 @@ export default function WorkerDashboard() {
         <EditProfileModal
           isOpen={isEditOpen}
           onClose={() => setIsEditOpen(false)}
+          onProfileUpdate={fetchDashboardData} // Pass the refresh function
         />
         <ManageServicesModal
           isOpen={isManageOpen}
