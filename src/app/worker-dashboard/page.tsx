@@ -55,7 +55,7 @@ export default function WorkerDashboard() {
   const [error, setError] = useState<string | null>(null);
 
   const fetchDashboardData = useCallback(async () => {
-    setIsLoading(true); // Set loading true when refetching
+    setIsLoading(true);
     setError(null);
     try {
       const res = await fetch("/api/workers/dashboard");
@@ -125,7 +125,6 @@ export default function WorkerDashboard() {
           <StatusToggle />
         </div>
 
-        {/* Quick Actions */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
           <ActionButton
             icon={<CalendarDays size={30} className="text-[#e61717]" />}
@@ -179,7 +178,6 @@ export default function WorkerDashboard() {
           </div>
         </div>
 
-        {/* ✅ Popup Modals */}
         <ViewTodaysJobsModal
           isOpen={isJobsOpen}
           onClose={() => setIsJobsOpen(false)}
@@ -202,7 +200,6 @@ export default function WorkerDashboard() {
   );
 }
 
-// ✅ Reusable Quick Action Button Component
 function ActionButton({
   icon,
   text,

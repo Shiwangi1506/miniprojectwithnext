@@ -76,7 +76,6 @@ export default function SignupPage() {
       className="min-h-screen flex items-center justify-center p-6 bg-cover bg-center"
       style={{ backgroundImage: "url('/image/login.jpg')" }}
     >
-      {/* Success Popup */}
       <AnimatePresence>
         {showSuccessPopup && (
           <motion.div

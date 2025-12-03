@@ -104,7 +104,7 @@ export default function Home(): React.ReactElement {
 
   return (
     <main className="bg-gradient-to-b from-[#f5f6f2]/95 to-[#e5eaee]/90 text-center min-h-screen">
-      {/* 🟦 Full-width Hero Section */}
+  
       <section className="w-full bg-[#a8c6d8] py-16 px-6 mt-6 text-center shadow-inner">
         <div className="max-w-5xl mx-auto">
           <h1 className="text-4xl md:text-5xl font-bold text-[#F5F5EF] drop-shadow-sm">
@@ -130,7 +130,6 @@ export default function Home(): React.ReactElement {
         </div>
       </section>
 
-      {/* 🟨 Popular Services */}
       <section className="py-14 px-5 max-w-6xl mx-auto">
         <h2 className="text-3xl font-semibold text-center text-[#1A1A1A]">
           Our Popular Services
@@ -169,7 +168,6 @@ export default function Home(): React.ReactElement {
         </div>
       </section>
 
-      {/* 🟩 Reviews */}
       <section className="bg-[#f0f4f8]/80 backdrop-blur-lg py-14 px-6 rounded-2xl max-w-5xl mx-auto shadow-inner">
         <h2 className="text-2xl font-semibold text-center text-[#1A1A1A]">
           What Our Customers Say
@@ -200,7 +198,6 @@ export default function Home(): React.ReactElement {
         </div>
       </section>
 
-      {/* 🟪 FAQ */}
       <section className="py-14 px-5 max-w-4xl mx-auto">
         <h2 className="text-2xl font-semibold text-center text-[#1A1A1A]">
           Frequently Asked Questions

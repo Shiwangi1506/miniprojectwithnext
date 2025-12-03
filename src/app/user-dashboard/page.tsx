@@ -21,7 +21,6 @@ interface Booking {
   date: string;
   status: "pending" | "ongoing" | "completed" | "cancelled";
   workerId?: {
-    // The worker is now populated
     name: string;
     skills: string[];
   };
@@ -41,21 +40,18 @@ export default function UserDashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  // ✅ Protect route
   useEffect(() => {
     if (status === "loading") return;
     if (!session?.user) router.push("/login");
     else if (session.user.role === "worker") router.push("/worker-dashboard");
   }, [status, session, router]);
 
-  // ✅ Fetch full user profile from our API
   useEffect(() => {
     async function fetchUserProfile() {
       if (session?.user?.email) {
         try {
           const res = await fetch(`/api/user?email=${session.user.email}`);
           if (res.ok) {
-            // Check if the response has content before parsing
             const text = await res.text();
             if (!text) {
               console.warn("User profile response was empty.");
@@ -89,7 +85,6 @@ export default function UserDashboard() {
 
   return (
     <div className="flex min-h-screen bg-gray-50 text-gray-900">
-      {/* Sidebar */}
       <aside className="w-64 bg-[#121212] text-white flex flex-col p-6 border-r border-gray-800">
         <h2 className="text-2xl font-semibold mb-8">User Dashboard</h2>
         <nav className="flex flex-col gap-2">
@@ -108,9 +103,7 @@ export default function UserDashboard() {
         </nav>
       </aside>
 
-      {/* Main Content */}
       <main className="flex-1 p-6 md:p-10 bg-gray-50">
-        {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold">
             Welcome Back,{" "}
@@ -126,7 +119,6 @@ export default function UserDashboard() {
           </button>
         </div>
 
-        {/* Top Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <ProfileCard user={userProfile} />
           <StatsCard title="Active Bookings" value={activeBookings.length} />
@@ -136,7 +128,6 @@ export default function UserDashboard() {
           />
         </div>
 
-        {/* Booking History Table */}
         <div className="bg-white shadow-md p-4">
           <h2 className="text-lg font-semibold mb-3">Recent Bookings</h2>
           {bookings && bookings.length > 0 ? (
@@ -183,7 +174,6 @@ export default function UserDashboard() {
           )}
         </div>
 
-        {/* Edit Profile Modal */}
         {isEditOpen && (
           <UserProfileEditModal
             isOpen={isEditOpen}
@@ -196,7 +186,6 @@ export default function UserDashboard() {
   );
 }
 
-// Sidebar Button Component
 function SidebarButton({
   icon,
   text,
@@ -220,7 +209,6 @@ function SidebarButton({
   return <button className="w-full text-left">{content}</button>;
 }
 
-// Profile Card
 function ProfileCard({ user }: { user: any }) {
   return (
     <div className="bg-white p-4 shadow-md flex items-center gap-4">
@@ -239,7 +227,6 @@ function ProfileCard({ user }: { user: any }) {
   );
 }
 
-// Stats Card
 function StatsCard({ title, value }: { title: string; value: number }) {
   return (
     <div className="bg-white p-4 shadow-md text-center">
@@ -249,7 +236,6 @@ function StatsCard({ title, value }: { title: string; value: number }) {
   );
 }
 
-// User Profile Edit Modal
 function UserProfileEditModal({
   isOpen,
   onClose,
@@ -318,7 +304,6 @@ function UserProfileEditModal({
             />
           </div>
 
-          {/* Location Field */}
           <div className="flex flex-col">
             <label className="text-gray-600 text-xs mb-1">Location</label>
             <input
@@ -330,7 +315,6 @@ function UserProfileEditModal({
             />
           </div>
 
-          {/* Display Email (read-only) */}
           <div className="flex flex-col">
             <label className="text-gray-600 text-xs mb-1">Email</label>
             <input

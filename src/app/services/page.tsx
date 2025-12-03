@@ -129,7 +129,6 @@ export default function ServicesPage() {
   const [exampleIndex, setExampleIndex] = useState(0);
   const [typingForward, setTypingForward] = useState(true);
 
-  // ✨ Smooth Typewriter Animation
   useEffect(() => {
     const currentExample = exampleSearches[exampleIndex];
     let timer: NodeJS.Timeout;
@@ -170,7 +169,6 @@ export default function ServicesPage() {
           affordable service at your doorstep.
         </p>
 
-        {/* 🔍 Search Bar with smoother animation */}
         <div className="mt-8 flex justify-center">
           <motion.div
             className="relative w-full max-w-md"
@@ -201,7 +199,6 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      {/* Services Grid */}
       <section className="px-6 py-12 max-w-6xl mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
           {filteredServices.map((service, index) => (
@@ -213,7 +210,6 @@ export default function ServicesPage() {
               viewport={{ once: true }}
               className="relative bg-white rounded-2xl p-8 text-center border border-gray-200 hover:border-[#a8c6d8]/80 transition-all shadow-sm hover:shadow-xl overflow-hidden group"
             >
-              {/* ✨ Animated Shiny Border */}
               <motion.div
                 className="absolute inset-0 rounded-2xl pointer-events-none border border-transparent group-hover:border-[#a8c6d8]/70"
                 animate={{ opacity: [0.5, 1, 0.5] }}

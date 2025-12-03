@@ -59,10 +59,8 @@ const WorkerBookingsPage = () => {
             throw new Error(data.message || "Failed to fetch bookings.");
           }
 
-          // Ensure that data.bookings is an array before setting state
           setBookings(Array.isArray(data.bookings) ? data.bookings : []);
         } catch (err) {
-          // On any error, ensure bookings is an empty array
           setBookings([]);
 
           setError(
@@ -110,7 +108,6 @@ const WorkerBookingsPage = () => {
           ? err.message
           : "An unknown error occurred while updating status."
       );
-      // Optionally revert UI change on error, though current implementation just shows a general error.
     } finally {
       setUpdatingStatus(null);
     }
@@ -196,15 +193,14 @@ const WorkerBookingsPage = () => {
                         <option value="pending">Pending</option>
                         <option value="confirmed">Confirmed</option>
                         <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
                       </select>
                       {updatingStatus === booking._id && (
                         <Loader2 className="h-4 w-4 animate-spin" />
                       )}
                     </div>
                     <div className="flex items-center gap-1 mt-2 text-green-600">
-                      <span className="text-xs font-semibold">
-                        {/* Paid Successfully - This seems duplicated, you might want to remove one */}
-                      </span>
+                      <span className="text-xs font-semibold"></span>
                     </div>
                   </div>
                 </div>

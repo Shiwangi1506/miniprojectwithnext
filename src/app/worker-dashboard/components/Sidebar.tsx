@@ -29,8 +29,8 @@ const Sidebar = () => {
 
   return (
     <aside className="w-64 bg-gray-800 text-white flex-col hidden md:flex">
-      <div className="p-6 text-2xl font-bold border-b border-gray-700 text-center">
-        <Link href="/worker-dashboard">UrbanSetGo</Link>
+      <div className="p-3 text-2xl font-bold border-b border-gray-700 text-center">
+        <Link href="/worker-dashboard">Worker Dashboard</Link>
       </div>
       <nav className="flex-1 p-4 space-y-2">
         {navItems.map((item) => (
