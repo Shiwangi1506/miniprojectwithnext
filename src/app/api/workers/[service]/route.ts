@@ -4,29 +4,28 @@ import { NextResponse } from "next/server";
 
 export async function GET(
   request: Request,
-  context: { params: { service: string } }
+  { params }: { params: { service: string } }
 ) {
-  const { service } = context.params;
-
-  if (!service) {
-    return NextResponse.json(
-      { success: false, message: "Service parameter is missing" },
-      { status: 400 }
-    );
-  }
+  await dbConnect();
 
   try {
-    await dbConnect();
+    const { service } = params;
 
-    const workers = await Worker.find({
-      skills: { $regex: new RegExp(`^${service.replace("-", " ")}$`, "i") },
-    }).lean();
+    if (!service) {
+      return NextResponse.json(
+        { success: false, message: "Service parameter is missing." },
+        { status: 400 }
+      );
+    }
 
-    return NextResponse.json({ success: true, workers });
+    // Find workers where the 'skills' array contains the requested service
+    const workers = await Worker.find({ skills: service });
+
+    return NextResponse.json({ success: true, workers }, { status: 200 });
   } catch (error) {
-    console.error(`Error fetching workers for service: ${service}`, error);
+    console.error("Error fetching workers by service:", error);
     return NextResponse.json(
-      { success: false, message: "Server error" },
+      { success: false, message: "Server Error" },
       { status: 500 }
     );
   }

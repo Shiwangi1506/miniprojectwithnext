@@ -184,7 +184,7 @@ const RegisterProfessional = () => {
       setShowSuccessPopup(true);
       setTimeout(() => {
         router.push("/worker-dashboard");
-      }, 3000); // Redirect after 3 seconds
+      }, 3000);
 
       setStep(1);
       setFormData({
@@ -239,7 +239,6 @@ const RegisterProfessional = () => {
           Register as a Professional
         </h1>
 
-        {/* Progress bar */}
         <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
           <div
             className="bg-[#e61717] h-3 rounded-full transition-all"
@@ -250,7 +249,6 @@ const RegisterProfessional = () => {
           {progress}% Completed
         </p>
 
-        {/* Step indicators */}
         <div className="flex justify-between mb-6 relative">
           {steps.map((s, idx) => {
             const isCompleted = s.id < step;
@@ -280,7 +278,6 @@ const RegisterProfessional = () => {
           })}
         </div>
 
-        {/* Error messages */}
         {errors.length > 0 && (
           <div className="bg-red-100 text-red-700 p-3 rounded-lg space-y-1">
             <ul>
@@ -291,7 +288,6 @@ const RegisterProfessional = () => {
           </div>
         )}
 
-        {/* Step 1 */}
         {step === 1 && (
           <div className="space-y-4">
             <input
@@ -321,7 +317,6 @@ const RegisterProfessional = () => {
           </div>
         )}
 
-        {/* Step 2 */}
         {step === 2 && (
           <div className="space-y-4">
             <input
@@ -370,7 +365,7 @@ const RegisterProfessional = () => {
               {serviceOptions.map((service) => (
                 <option key={service} value={service}>
                   {service.charAt(0).toUpperCase() +
-                    service.slice(1).replace("-", " ")}
+                    service.slice(1).replace(/-/g, " ")}
                 </option>
               ))}
             </select>
@@ -393,7 +388,6 @@ const RegisterProfessional = () => {
           </div>
         )}
 
-        {/* Step 3 */}
         {step === 3 && (
           <div className="space-y-4">
             <label className="flex flex-col p-3 border rounded-lg cursor-pointer hover:bg-gray-100 transition">
@@ -436,7 +430,6 @@ const RegisterProfessional = () => {
           </div>
         )}
 
-        {/* Navigation buttons */}
         <div className="flex justify-between mt-4">
           {step > 1 && (
             <button
