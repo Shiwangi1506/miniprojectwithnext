@@ -16,7 +16,6 @@ import EditProfileModal from "./components/editProfile";
 import ManageServicesModal from "./components/manageServices";
 import { mockFeedback } from "./data/mockData";
 
-// Define types for our fetched data
 interface WorkerDetails {
   name: string;
   email: string;
@@ -41,12 +40,10 @@ interface DashboardData {
   recentFeedback: Feedback[];
 }
 
-// ✅ Main Worker Dashboard Component
 export default function WorkerDashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  // ✅ Declare all hooks first (always)
   const [isJobsOpen, setIsJobsOpen] = useState(false);
   const [isEarningsOpen, setIsEarningsOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -57,7 +54,6 @@ export default function WorkerDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // ✅ Define fetchDashboardData outside useEffect, wrapped in useCallback
   const fetchDashboardData = useCallback(async () => {
     setIsLoading(true); // Set loading true when refetching
     setError(null);
@@ -77,9 +73,8 @@ export default function WorkerDashboard() {
     } finally {
       setIsLoading(false);
     }
-  }, []); // Empty dependency array means this function is created only once
-
-  // ✅ Protect route (check session and role)
+  }, []);
+  
   useEffect(() => {
     if (status === "loading") return;
 
@@ -96,7 +91,7 @@ export default function WorkerDashboard() {
     fetchDashboardData();
   }, [session, status, router, fetchDashboardData]);
 
-  // ✅ Loading and error states
+  
   if (status === "loading" || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -108,18 +103,18 @@ export default function WorkerDashboard() {
     );
   }
 
-  // ✅ Main UI
+  
   return (
     <div
       className="flex min-h-screen bg-[#f9f9f9] text-black"
       style={{ backgroundImage: "url('/image/login.jpg')" }}
     >
-      {/* Sidebar */}
+      
       <Sidebar />
 
-      {/* Main Section */}
+      
       <main className="flex-1 p-6 md:p-10 bg-white/70 backdrop-blur-xl shadow-inner border-l border-white/40">
-        {/* Header */}
+        
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900">
             👋 Welcome back,{" "}
@@ -154,9 +149,9 @@ export default function WorkerDashboard() {
           />
         </div>
 
-        {/* Stats Section */}
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Earnings Overview */}
+         
           <motion.div
             className="bg-white/70 backdrop-blur-lg rounded-2xl p-6 border border-white/60 shadow-md hover:shadow-xl transition"
             initial={{ borderColor: "#e61717" }}

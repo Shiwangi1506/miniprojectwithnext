@@ -14,15 +14,14 @@ export default function Home(): React.ReactElement {
     setOpenFAQ(openFAQ === index ? null : index);
   };
 
-  // The session object from next-auth might need type augmentation to include `role`.
+ 
   const userRole = (session?.user as { role?: string })?.role;
 
   const registrationHref = useMemo(() => {
-    // If user is logged in, link to registration page to add/update skills.
     if (session) {
       return "/registration";
     }
-    return "/login"; // Otherwise, link to login.
+    return "/login"; 
   }, [session, userRole]);
 
   const faqs = [

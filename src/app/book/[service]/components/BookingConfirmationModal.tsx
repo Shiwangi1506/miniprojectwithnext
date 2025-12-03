@@ -94,7 +94,7 @@ export const BookingConfirmationModal: React.FC<
                 Processing...
               </>
             ) : (
-              `Pay ${currency(worker.price || 0)}`
+              "Confirm Booking"
             )}
           </button>
         </div>

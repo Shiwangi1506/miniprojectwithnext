@@ -10,6 +10,7 @@ import { WorkerList } from "./components/WorkerList";
 import { BookingDrawer } from "./components/BookingDrawer";
 import { WorkerDetailsModal } from "./components/WorkerDetailsModal";
 import { BookingConfirmationModal } from "./components/BookingConfirmationModal";
+import { BookingSuccessModal } from "./components/BookingSuccessModal";
 import { Worker } from "./types";
 import { IService } from "@/models/service";
 
@@ -51,6 +52,7 @@ export default function BookNowPage({
   // Confirmation Modal states
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isProcessingBooking, setIsProcessingBooking] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
   // Define available time slots
   const timeSlots = [
@@ -170,15 +172,9 @@ export default function BookNowPage({
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Booking failed.");
 
-      alert("Booking successful!");
-
-      // Close all modals and reset state
+      // Close confirmation modal and open success modal
       setIsConfirmModalOpen(false);
-      setBookingWorker(null);
-      setSelectedDate(null);
-      setSelectedSlot(null);
-      setAddress("");
-      setNotes("");
+      setIsSuccessModalOpen(true);
     } catch (error) {
       alert(
         error instanceof Error ? error.message : "An unknown error occurred."
@@ -194,6 +190,17 @@ export default function BookNowPage({
     setPlace("");
     setMinExperience(0);
     setSortBy("relevance");
+  };
+
+  // ✅ Reset booking state after success
+  const handleCloseSuccessModal = () => {
+    setIsSuccessModalOpen(false);
+    setBookingWorker(null);
+    setSelectedDate(null);
+    setSelectedSlot(null);
+    // Keep address pre-filled for next time
+    // setAddress("");
+    setNotes("");
   };
 
   return (
@@ -297,6 +304,12 @@ export default function BookNowPage({
           slot: selectedSlot,
           address: address,
         }}
+      />
+
+      {/* Booking Success Modal */}
+      <BookingSuccessModal
+        open={isSuccessModalOpen}
+        onClose={handleCloseSuccessModal}
       />
     </div>
   );
